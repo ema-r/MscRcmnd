@@ -1,6 +1,6 @@
 services:
   db:
-    image: mariadb:11-jammy
+    image: mariadb:lts
     command: '--default-authentication-plugin=ed25519'
     restart: always
     healthcheck:
