@@ -29,18 +29,47 @@ services:
     secrets:
       - db-password
     ports:
-      - 8000:8000
+      - 7999:7999
     networks:
       - internalnet
     depends_on:
       db:
         condition: service_healthy
 
+  interfacevis:
+    build:
+      context: interfacevis
+      target: builder
+    restart: always
+    ports: 
+      - 8000:80
+    networks:
+      - interfacenet
+      - internalnet
+    depends_on:
+      proxy:
+        condition: service_healthy
+
+  interfaceapi:
+    build:
+      context: interfaceapi
+      target: builder
+    restart: always
+    ports: 
+      - 8080:80
+    networks:
+      - interfacenet
+      - internalnet
+    depends_on:
+      proxy:
+        condition: service_healthy
+
   proxy:
     build: proxy
     restart: always
     ports:
-      - 8080:80
+      - 8000:8000
+      - 8080:8080
     depends_on: 
       - businesslogic
     networks:
