@@ -1,7 +1,7 @@
 services:
   db:
     image: mariadb:11-jammy
-    command: '--default-authentication-plugin=caching_sha2_password'
+    command: '--default-authentication-plugin=ed25519'
     restart: always
     healthcheck:
       test: ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 --password="$$(cat /run/secrets/db-password)" --silent']
