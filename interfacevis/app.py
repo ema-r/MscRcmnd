@@ -1,14 +1,13 @@
 import os
-from flask import Flask
-import mysql.connector
+import flask
 
-server = Flask(__name__)
-conn = None
+app = flask.Flask(__name__)
 
-@server.route('/')
+@app.route('/')
 def hello():
-    return "hello"
+    return "<p>hello</p>"
 
 
 if __name__ == '__main__':
-    server.run()
+    app.run()
+    print("test")
