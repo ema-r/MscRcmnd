@@ -2,7 +2,7 @@ server {
     listen       8000;
     server_name  localhost;
     location / {
-        proxy_pass   http://interfacevis:8000;
+        proxy_pass   http://interfacevis:8008;
     }
     
 }
@@ -11,7 +11,7 @@ server {
     listen       8080;
     server_name  localhost;
     location / {
-        proxy_pass   http://interfaceapi:8080;
+        proxy_pass   http://interfaceapi:8088;
     }
     
 }
