@@ -8,7 +8,7 @@ server {
 }
 
 server {
-    listen       8080;
+    listen       8079;
     server_name  localhost;
     location / {
         proxy_pass   http://interfaceapi:8088;
