@@ -42,13 +42,10 @@ services:
       target: builder
     restart: always
     ports: 
-      - 8000:80
+      - 8008:80
     networks:
       - interfacenet
       - internalnet
-    depends_on:
-      proxy:
-        condition: service_healthy
 
   interfaceapi:
     build:
@@ -56,13 +53,10 @@ services:
       target: builder
     restart: always
     ports: 
-      - 8080:80
+      - 8088:80
     networks:
       - interfacenet
       - internalnet
-    depends_on:
-      proxy:
-        condition: service_healthy
 
   proxy:
     build: proxy
