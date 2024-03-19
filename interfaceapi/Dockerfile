@@ -1,35 +1,15 @@
 # syntax=docker/dockerfile:1.4
-FROM --platform=$BUILDPLATFORM python:3.13.0a4-bookworm AS builder
+FROM python:3
 
-WORKDIR /code
-COPY requirements.txt /code
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip3 install -r requirements.txt
+WORKDIR /usr/src/app
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-ENV FLASK_APP app.py
-ENV FLASK_ENV development
-ENV FLASK_RUN_PORT 8088
-ENV FLASK_RUN_HOST 0.0.0.0
 
-EXPOSE 8088
 
-CMD ["flask", "run"]
+EXPOSE 5000
 
-FROM builder AS dev-envs
+CMD ["python", "-m", "flask", "run", "--host=0.0.0.0"]
 
-RUN <<EOF
-apk update
-apk add git
-EOF
-
-RUN <<EOF
-addgroup -S docker
-adduser -S --shell /bin/bash --ingroup docker vscode
-EOF
-
-# install Docker tools (cli, buildx, compose)
-COPY --from=gloursdocker/docker / /
-
-CMD ["flask", "run"]
