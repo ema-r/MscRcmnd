@@ -1,14 +1,12 @@
 import os
-from flask import Flask
-import mysql.connector
+from flask import Flask, jsonify
 
-server = Flask(__name__)
-conn = None
+app = Flask(__name__)
 
-@server.route('/')
+@app.route('/')
 def hello():
-    return "hello"
+    return jsonify({'hello': 'world'})
 
 
 if __name__ == '__main__':
-    server.run()
+    app.run()
