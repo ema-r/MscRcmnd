@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, flash
+from flask import Flask, render_template, request, redirect, flash, jsonify
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -31,7 +31,7 @@ def contact():
         flash('Thank you for contacting us!', 'success')
 
         # Redirect to the homepage
-        return redirect('/')
+        return jsonify({"Name": name})
 
     # If it's a GET request, render the contact form
     return render_template('contact.html', active_page='contact')
