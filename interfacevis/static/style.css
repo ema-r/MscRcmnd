@@ -1,45 +1,56 @@
 /* style.css */
-.container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-    font-family: Arial, sans-serif;
+
+/* Custom styles for the hero section */
+.hero {
+    padding: 100px 0;
+    background-color: #f8f9fa; /* Light grey */
 }
 
-.styled-box {
-    background-color: #f0f0f0;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    margin-top: 20px;
+.hero h1 {
+    margin-bottom: 20px;
 }
 
-/* Styling the login button */
-.login-btn {
-    background-color: #4CAF50; /* Green */
-    border: none;
-    color: white;
-    padding: 15px 32px;
+.hero p {
+    margin-bottom: 40px;
+}
+
+/* Center the hero content */
+.hero .container {
     text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    margin: 4px 2px;
-    cursor: pointer;
-    border-radius: 8px;
 }
 
-/* Styling the signup button */
-.signup-btn {
-    background-color: #008CBA; /* Blue */
-    border: none;
+/* Custom styles for the footer */
+.footer {
+    padding: 20px 0;
     color: white;
-    padding: 15px 32px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    margin: 4px 2px;
-    cursor: pointer;
-    border-radius: 8px;
+}
+
+/* Additional custom styles */
+.navbar-brand {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.navbar-nav .nav-link {
+    padding: 0.5rem 1rem;
+    font-size: 18px;
+}
+
+/* Override Bootstrap's default button styles */
+.btn-success {
+    background-color: #28a745; /* Green */
+    border-color: #28a745;
+}
+
+.btn-primary {
+    background-color: #007bff; /* Blue */
+    border-color: #007bff;
+}
+
+/* Adjust button size for larger screens */
+@media (min-width: 992px) {
+    .btn-lg {
+        padding: 1rem 3rem;
+        font-size: 20px;
+    }
 }
