@@ -36,6 +36,11 @@
     font-size: 18px;
 }
 
+.active-text {
+    font-weight: bold;
+    color: #ffc107; 
+}
+
 /* Override Bootstrap's default button styles */
 .btn-success {
     background-color: #28a745; /* Green */

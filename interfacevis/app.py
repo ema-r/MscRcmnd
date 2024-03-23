@@ -1,13 +1,40 @@
-import os
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect, flash
 
 app = Flask(__name__)
+app.secret_key = 'your_secret_key'
+
 
 @app.route('/')
-def index():
-    return render_template('index.html')
+def homepage():
+    return render_template('index.html', active_page='index')
 
+@app.route('/about')
+def about():
+    return render_template('about.html', active_page='about')
 
-if __name__ == '__main__':
-    app.run()
-    print("test")
+@app.route("/contact", methods=['GET', 'POST']) 
+def contact():
+    if request.method == 'POST':
+        # Get form data
+        name = request.form['name']
+        email = request.form['email']
+        message = request.form['message']
+
+        # Process the form data (you can add your own logic here)
+
+        # For demonstration purposes, let's print the form data
+        print(f"Name: {name}")
+        print(f"Email: {email}")
+        print(f"Message: {message}")
+
+        # Flash a thank you message
+        flash('Thank you for contacting us!', 'success')
+
+        # Redirect to the homepage
+        return redirect('/')
+
+    # If it's a GET request, render the contact form
+    return render_template('contact.html', active_page='contact')
+
+if __name__ == "__main__":
+    app.run(debug=True)
