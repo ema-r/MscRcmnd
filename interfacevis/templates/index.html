@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask CSS Example</title>
+    <!-- Linking external CSS file -->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to MusicRecommender!</h1>
+        <p>Looking for new music suggestions? Log in or sign up to start getting new tracks</p>
+        <div class="styled-box">
+            <p>Small description or whatever, graphics to be improved</p>
+        </div>
+        <button class="login-btn">Login</button>
+        <button class="signup-btn">Sign Up</button>
+    </div>
+</body>
+</html>
