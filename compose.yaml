@@ -1,26 +1,24 @@
+version : '3.8'
+
 services:
   db:
-    image: mariadb:lts
-      #    command: '--default-authentication-plugin=ed25519'
+    image: mariadb
     restart: always
-      #    healthcheck:
-      #      test: ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 --password="$$(cat /run/secrets/db-password)" --silent']
-      #      interval: 3s
-      #      retries: 5
-      #      start_period: 30s
-      #secrets:
-      #- db-password
     volumes:
       - db-data:/var/lib/mysql
     networks:
       - internalnet
     environment:
-      # - MARIADB_DATABASE=example
-      # - MARIADB_ROOT_PASSWORD_FILE=/run/secrets/db-password
-      - MARIADB_ROOT_PASSWORD="test"
+      MARIADB_ROOT_PASSWORD: test
+      MARIADB_DATABASE: test_database
+      MARIADB_USER: test_user
+      MARIADB_PASSWORD: test
     expose:
       - 3306
       - 33060
+    ports:
+      - 3306:3306
+      - 33060:33060
 
   businesslogic:
     build: ./businesslogic
@@ -28,7 +26,7 @@ services:
     secrets:
       - db-password
     ports:
-      - 5003:5000
+      - 15003:5000
     networks:
       - internalnet
         #    depends_on:
@@ -39,7 +37,7 @@ services:
     build: ./interfacevis
     restart: always
     ports: 
-      - 5002:5000
+      - 15002:5000
     networks:
       - interfacenet
       - internalnet
@@ -48,7 +46,7 @@ services:
     build: ./interfaceapi
     restart: always
     ports: 
-      - 5001:5000
+      - 15001:5000
     networks:
       - interfacenet
       - internalnet

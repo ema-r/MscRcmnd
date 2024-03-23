@@ -1,38 +1,29 @@
-import os
 from flask import Flask
-import mysql.connector
-
-
-class DBManager:
-    def __init__(self, database='test', host="db", user="root", password_file=None):
-        pf = open(password_file, 'r')
-        self.connection = mysql.connector.connect(
-            user=user, 
-            password='test',
-            host=host,
-            database=database,
-            auth_plugin='mysql_native_password'
-        )
-        pf.close()
-        self.cursor = self.connection.cursor()
-    
-    def populate_db(self):
-        self.cursor.execute('DROP TABLE IF EXISTS example')
-        self.cursor.execute('CREATE TABLE example)')
-        self.connection.commit()
-
+import json
+import mariadb
 
 server = Flask(__name__)
-conn = None
+server.config["DEBUG"] = True
+
+db_config = {
+        'host': 'db',
+        'port': 3306,
+        'user': 'test_user',
+        'password': 'test',
+        'database': 'test_database'
+        }
 
 @server.route('/')
 def hello():
-    global conn
-    if not conn:
-        conn = DBManager(password_file='/run/secrets/db-password')
-        conn.populate_db()
+    conn = mariadb.connect(**db_config)
+            
+    cur = conn.cursor()
+    cur.execute('DROP TABLE IF EXISTS example')
+    cur.execute('CREATE TABLE example)')
+
     return "db setup\n"
 
 
 if __name__ == '__main__':
     server.run()
+
