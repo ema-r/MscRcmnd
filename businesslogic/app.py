@@ -10,7 +10,7 @@ db_config = {
         'port': 3306,
         'user': 'test_user',
         'password': 'test',
-        'database': 'test'
+        'database': 'test_database'
         }
 
 @server.route('/')
@@ -19,7 +19,7 @@ def hello():
             
     cur = conn.cursor()
     cur.execute('DROP TABLE IF EXISTS example')
-    cur.execute('CREATE TABLE example)')
+    cur.execute('CREATE TABLE example')
 
     return "db setup\n"
 
