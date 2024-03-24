@@ -18,10 +18,10 @@ def hello():
     conn = mariadb.connect(**db_config)
             
     cur = conn.cursor()
-    cur.execute('DROP TABLE IF EXISTS example')
+    cur.execute('DROP TABLE IF EXISTS example ( a INT )')
     cur.execute('CREATE TABLE example')
 
-    return "db setup\n"
+    return "db setup success\n"
 
 
 if __name__ == '__main__':
