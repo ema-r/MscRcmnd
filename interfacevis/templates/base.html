@@ -30,10 +30,10 @@
                         <a class="nav-link {% if active_page == 'contact' %}active-text{% endif %}" href="{{ url_for('contact') }}">Contact</a>
                     </li>
                     <li class="nav-item {% if active_page == 'signup' %}active{% endif %}">
-                        <a class="nav-link {% if active_page == 'signup' %}active-text{% endif %}" href="#">Sign Up</a>
+                        <a class="nav-link {% if active_page == 'signup' %}active-text{% endif %}" href="{{ url_for('signup') }}">Sign Up</a>
                     </li>
                     <li class="nav-item {% if active_page == 'login' %}active{% endif %}">
-                        <a class="nav-link {% if active_page == 'login' %}active-text{% endif %}" href="#">Login</a>
+                        <a class="nav-link {% if active_page == 'login' %}active-text{% endif %}" href="{{ url_for('login') }}">Login</a>
                     </li>
                 </ul>
             </div>
