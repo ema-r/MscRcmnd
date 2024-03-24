@@ -10,7 +10,7 @@ db_config = {
         'port': 3306,
         'user': 'test_user',
         'password': 'test',
-        'database': 'test_database'
+        'database': 'test'
         }
 
 @server.route('/')
