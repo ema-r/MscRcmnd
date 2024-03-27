@@ -10,11 +10,17 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
     <!-- Fivicon -->
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+
+
+
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('homepage') }}">MusicRec</a>
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('homepage') }}">
+                <img src="{{ url_for('static', filename='Icon-Speaker.jpeg') }}" alt="Icona" style="height: 40px; margin-right: 10px;"> 
+                <span>MusicRec</span>
+            </a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -39,6 +45,7 @@
             </div>
         </div>
     </nav>
+    
 
 
     <!-- Flash messages placeholder -->

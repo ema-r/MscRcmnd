@@ -52,6 +52,14 @@
     border-color: #007bff;
 }
 
+.footer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+}
+
+
 /* Adjust button size for larger screens */
 @media (min-width: 992px) {
     .btn-lg {
@@ -59,12 +67,5 @@
         font-size: 20px;
     }
 }
-{% block extra_css %}<style>
-    .footer {
-        position: fixed;
-        bottom: 0;
-        width: 100%;
-    }
-</style>
-{% endblock %}
+
 

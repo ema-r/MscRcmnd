@@ -7,10 +7,10 @@
 <p class="lead">Get personalized music recommendations tailored just for you.</p>
 <div class="row justify-content-center">
     <div class="col-md-6">
-        <a href="#" class="btn btn-success btn-lg btn-block">Sign Up</a>
+        <a href="{{ url_for('signup') }}" class="btn btn-success btn-lg btn-block">Sign Up</a>
     </div>
     <div class="col-md-6">
-        <a href="#" class="btn btn-primary btn-lg btn-block">Login</a>
+        <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg btn-block">Login</a>
     </div>
 </div>
 {% endblock %}
