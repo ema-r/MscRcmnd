@@ -53,7 +53,7 @@ services:
 
 
 volumes:
-  db-data:
+  db-data: 
 
 secrets:
   db-password:

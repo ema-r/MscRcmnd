@@ -71,5 +71,6 @@ def login():
     # GET request
     return render_template('login.html', active_page='login')
 
+
 if __name__ == "__main__":
     app.run(debug=True)
