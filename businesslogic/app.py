@@ -10,20 +10,14 @@ import businesshelpers as bhelpers
 server = Flask(__name__)
 server.config["DEBUG"] = True
 
-db_config = {
-        'host': 'db',
-        'port': 3306,
-        'user': 'test_user',
-        'password': 'test',
-        'database': 'test_database'
-        }
-
 @server.route('/')
 def hello():
-    conn = mariadb.connect(**db_config)
+    # conn = mariadb.connect(**db_config)
+    conn = mariadb.connect(**bhelpers.get_db_config())
             
     cur = conn.cursor()
-    cur.execute('CREATE TABLE example ( a INT )')
+    cur.execute('DROP TABLE IF EXISTS users')
+    cur.execute(bqueries.get_table_creation_query())
     conn.close()
 
     return "db setup success\n"
@@ -31,7 +25,8 @@ def hello():
 # Route to receive info on available number of tokens to request services
 @server.route('/availabletokens/<userid>')
 def availabletokens(userid):
-    conn = mariadb.connect(**db_config)
+    # conn = mariadb.connect(**db_config)
+    conn = mariadb.connect(**bhelpers.get_db_config())
 
     availabletokens = []    # Should be a single element, but just to be sure...
     # Maybe add exception too if number of elements is anomalous?
@@ -44,29 +39,23 @@ def availabletokens(userid):
 
     conn.close()
     
-    return jsonify(availabletokens)
-    
+    return jsonify({'available_tokens': availabletokens})
 
 
 @server.route('/prevracc')
 # Instantiate Connection
 def racc():
     try:
-     conn = mariadb.connect(
-        **db_config
-        
-    )
+     conn = mariadb.connect(**bhelpers.get_db_config())
      # Instantiate Cursor
      cur = conn.cursor()
-
+     conn.close()
      return "db prevracc suc"
      # Close Connection
-     conn.close()
     
     except mariadb.Error as e:
       print(f"Error connecting to the database: {e}")
       sys.exit(1)
-
 
 
 if __name__ == '__main__':
