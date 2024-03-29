@@ -1,6 +1,7 @@
 from flask import Flask, jsonify
 import json
 import mariadb
+import sys
 
 # Defined by us
 import businessqueries as bqueries
@@ -22,7 +23,6 @@ def hello():
     conn = mariadb.connect(**db_config)
             
     cur = conn.cursor()
-    cur.execute('DROP TABLE IF EXISTS example')
     cur.execute('CREATE TABLE example ( a INT )')
     conn.close()
 
@@ -46,6 +46,28 @@ def availabletokens(userid):
     
     return jsonify(availabletokens)
     
+
+
+@server.route('/prevracc')
+# Instantiate Connection
+def racc():
+    try:
+     conn = mariadb.connect(
+        **db_config
+        
+    )
+     # Instantiate Cursor
+     cur = conn.cursor()
+
+     return "db prevracc suc"
+     # Close Connection
+     conn.close()
+    
+    except mariadb.Error as e:
+      print(f"Error connecting to the database: {e}")
+      sys.exit(1)
+
+
 
 if __name__ == '__main__':
     server.run()
