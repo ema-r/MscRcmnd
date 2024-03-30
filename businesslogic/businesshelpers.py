@@ -15,19 +15,29 @@ def get_db_config():
 def json_return(mystring):
     return jsonify({'returned': mystring})
 
-# This expects queries as an <iterable> of strings
-def run_sql_queries(queries):
+def run_sql_query(my_query):
     conn = mariadb.connect(**db_config)
     
+    cur = conn.cursor()
+
     result = []
 
-    for query in queries:
-        cur = conn.cursor(query)
+    rows = cur.execute(my_query)
+    if rows is not None:
         for (element) in cur:
             result.append(f"{element}")
 
-    cur.execute()
-
     conn.close()
+
+    return result;
+
+
+# This expects queries as an <iterable> of strings
+def run_sql_queries(queries):
+
+    result = []
+
+    for qry in queries:
+        result.append(run_sql_query(qry))
 
     return result;

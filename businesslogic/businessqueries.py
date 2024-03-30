@@ -1,11 +1,11 @@
 def get_conditional_user_table_creation_query():
-   return 'CREATE TABLE IF NOT EXISTS Users ( username VARCHAR(30), email VARCHAR(30), password VARCHAR(32), availabletokenquantity INT )' 
+   return 'CREATE TABLE IF NOT EXISTS Users ( uid int(11) NOT NULL AUTO_INCREMENT, username varchar(30) NOT NULL, email varchar(30) NOT NULL, password varchar(32) NOT NULL, availabletokenquantity int NOT NULL, PRIMARY KEY (uid) );' 
 
 def get_conditional_reccomandation_table_creation_query():
-    return 'CREATE TABLE IF NOT EXISTS Reccomandation ( artistname VARCHAR(32), songname VARCHAR(16), spotifylink VARCHAR(32), FOREIGN KEY (UserID) REFERENCES Users(id) )'
+    return 'CREATE TABLE IF NOT EXISTS Reccomandation ( rid int(11) NOT NULL, artistname varchar(32) NOT NULL, songname varchar(16) NOT NULL, spotifylink varchar(32) NOT NULL, userID int(11), PRIMARY KEY(rid) , FOREIGN KEY (userID) REFERENCES Users(uid) );'
 
 def get_available_token_query(userid):
-    return 'SELECT availabletokenquantity FROM Users WHERE Users.id='+userid
+    return 'SELECT availabletokenquantity FROM Users WHERE Users.id='+userid+';'
 
 def get_reccomandation_for_user_query(userid):
-    return 'SELECT artistname, songname, spotifylink FROM Reccomandation WHERE UserID=userid'
+    return 'SELECT artistname, songname, spotifylink FROM Reccomandation WHERE UserID=userid;'
