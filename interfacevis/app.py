@@ -3,6 +3,9 @@ from flask import Flask, render_template, request, redirect, flash, jsonify
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
+# Businesslogic base url
+bl_url="http://localhost:15003/"
+
 
 @app.route('/')
 def homepage():
@@ -39,7 +42,8 @@ def contact():
     # If it's a GET request, render the contact form
     return render_template('contact.html', active_page='contact')
     
-    
+
+# SIGNUP
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
@@ -48,7 +52,14 @@ def signup():
         email = request.form['email']
         password = request.form['password']
 
-        return jsonify({"Username": username, "Email": email})
+        data=jsonify({"username": username, "email": email, "password": password})
+        ret=request.post(bl_url+"route", json=data)
+
+        if ret.status_code == 200:
+            flash("Successfully registered!")
+            return render_template('index', active_page='index')
+        else:
+            return("Error during the signup process:", ret.status_code)
 
     else:
         # If it's GET, return normal page
