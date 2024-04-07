@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 import sys
 
 # Defined by us
@@ -17,7 +17,7 @@ def dbsetup():
 
 @server.route('/')
 def hello():
-    return bhelpers.json_return("Hi, this appears to work");
+    return bhelpers.json_return("Hi, this appears to work")
 
 # Route to receive info on available number of tokens to request services
 @server.route('/availabletokens/<userid>')
@@ -29,6 +29,35 @@ def availabletokens(userid):
 # Instantiate Connection
 def racc(userid):
     return jsonify({'reccomandations_for_user': bhelpers.run_sql_query(bqueries.get_reccomandation_for_user_query(userid))})
+
+
+@server.route('/add_user', methods=['POST'])
+def add_user():
+    # Assume the data is sent as JSON in the request body
+    if request.method == 'POST':
+    # Ottenere i dati JSON inviati nella richiesta
+        user_data = request.json
+    #user_data = request.json
+        username = user_data.get('username')
+        email = user_data.get('email')
+        password = user_data.get('password')
+        name = user_data.get('name')
+        availabletokenquantity = user_data.get('availabletokenquantity')
+        query = bqueries.insert_user_query(username, email, password, availabletokenquantity)
+        bhelpers.run_sql_query(query)
+        if not (username and email and password and name and availabletokenquantity):
+            return jsonify({'error': 'Missing required fields'}), 400
+
+        return jsonify({'message': 'User added successfully'}), 200
+
+    else:
+        # Se la richiesta non è una richiesta POST, restituisci un errore 405 (Method Not Allowed)
+        return jsonify({'error': 'Method not allowed'}), 405
+
+    
+
+
+   
 
 if __name__ == '__main__':
     server.run()
