@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, redirect, flash, jsonify
+from flask import Flask, render_template, request, flash, jsonify
+import requests
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -53,7 +54,7 @@ def signup():
         password = request.form['password']
 
         data=jsonify({"username": username, "email": email, "password": password})
-        ret=request.post(bl_url+"route", json=data)
+        ret=requests.post(bl_url+"route", json=data)
 
         if ret.status_code == 200:
             flash("Successfully registered!")
