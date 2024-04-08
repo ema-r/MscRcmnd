@@ -53,8 +53,8 @@ def signup():
         email = request.form['email']
         password = request.form['password']
 
-        data=jsonify({"username": username, "email": email, "password": password})
-        ret=requests.post(bl_url+"route", json=data)
+        data={"username": username, "email": email, "password": password}
+        ret=requests.post(bl_url+"signup", json=data)
 
         if ret.status_code == 200:
             flash("Successfully registered!")
