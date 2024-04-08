@@ -5,7 +5,7 @@ app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
 # Businesslogic base url
-bl_url="http://127.0.0.1:15003/"
+bl_url="http://mscrcmnd-businesslogic-1:5000/"
 
 
 @app.route('/')
@@ -57,8 +57,8 @@ def signup():
         ret=requests.post(bl_url+"add_user", json=data)
 
         if ret.status_code == 200:
-            flash("Successfully registered!")
-            return render_template('index', active_page='index')
+            flash("Successfully registered!", "success")
+            return render_template('index.html', active_page='index')
         else:
             return("Error during the signup process:", ret.status_code)
 

@@ -10,6 +10,12 @@ server = Flask(__name__)
 server.config["DEBUG"] = True
 CORS(server)
 
+
+@server.route('/reset')
+def reset():
+    bhelpers.run_sql_query("DROP TABLE Users;")
+    return bhelpers.json_return("Success")
+
 @server.route('/database_initial_setup')
 def dbsetup():
     bhelpers.run_sql_query(bqueries.get_conditional_user_table_creation_query())
