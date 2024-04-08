@@ -10,5 +10,5 @@ def get_available_token_query(userid):
 def get_reccomandation_for_user_query(userid):
     return 'SELECT artistname, songname, spotifylink FROM Reccomandation WHERE UserID=userid;'
 
-def insert_user_query(username, email, password, name, availabletokenquantity):
-    return f"INSERT INTO Users (username, email, password, name, availabletokenquantity) VALUES ('{username}', '{email}', '{password}', '{name}', {availabletokenquantity});"
+def insert_user_query(username, email, password):
+    return "INSERT INTO Users (username, email, password) VALUES ('{username}', '{email}', '{password}');"

@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 import sys
+from flask_cors import CORS
 
 # Defined by us
 import businessqueries as bqueries
@@ -7,6 +8,7 @@ import businesshelpers as bhelpers
 
 server = Flask(__name__)
 server.config["DEBUG"] = True
+CORS(server)
 
 @server.route('/database_initial_setup')
 def dbsetup():
@@ -41,11 +43,12 @@ def add_user():
         username = user_data.get('username')
         email = user_data.get('email')
         password = user_data.get('password')
-        name = user_data.get('name')
-        availabletokenquantity = user_data.get('availabletokenquantity')
-        query = bqueries.insert_user_query(username, email, password, availabletokenquantity)
+        #name = user_data.get('name')
+        #availabletokenquantity = user_data.get('availabletokenquantity')
+        #availabletokenquantity = 10
+        query = bqueries.insert_user_query(username, email, password)
         bhelpers.run_sql_query(query)
-        if not (username and email and password and name and availabletokenquantity):
+        if not (username and email and password):
             return jsonify({'error': 'Missing required fields'}), 400
 
         return jsonify({'message': 'User added successfully'}), 200
