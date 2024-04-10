@@ -12,3 +12,8 @@ def get_reccomandation_for_user_query(userid):
 
 def insert_user_query(username, email, password):
     return f"INSERT INTO Users (username, email, password) VALUES ('{username}', '{email}', '{password}');"
+
+
+# Mostly a debug funcion
+def show_all_users():
+    return "SELECT * FROM Users;"

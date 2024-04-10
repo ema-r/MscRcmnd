@@ -14,6 +14,7 @@ CORS(server)
 @server.route('/reset')
 def reset():
     bhelpers.run_sql_query("DROP TABLE Users;")
+    dbsetup()
     return bhelpers.json_return("Success")
 
 @server.route('/database_initial_setup')
@@ -43,17 +44,22 @@ def racc(userid):
 def add_user():
     # Assume the data is sent as JSON in the request body
     if request.method == 'POST':
-    # Ottenere i dati JSON inviati nella richiesta
+    # Get JSON data
         user_data = request.json
-    #user_data = request.json
+        
         username = user_data.get('username')
         email = user_data.get('email')
         password = user_data.get('password')
+
         #name = user_data.get('name')
         #availabletokenquantity = user_data.get('availabletokenquantity')
         #availabletokenquantity = 10
         query = bqueries.insert_user_query(username, email, password)
+
+        # Executing signup query (TO-BE completed)
         bhelpers.run_sql_query(query)
+        bhelpers.run_sql_query(bqueries.show_all_users(), True)
+
         if not (username and email and password):
             return jsonify({'error': 'Missing required fields'}), 400
 
