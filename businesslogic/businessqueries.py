@@ -13,18 +13,21 @@ def get_reccomandation_for_user_query(userid):
 def insert_user_query(username, email, password):
     return f"INSERT INTO Users (username, email, password) VALUES ('{username}', '{email}', '{password}');"
 
-def get_user_data_query(userid):
-    return 'SELECT username, email FROM Users WHERE Users.uid='+userid+';'
+#def get_user_data_query(userid):
+#    return f"SELECT username, email, uid FROM Users WHERE Users.uid='{userid}';"
+
+def get_user_data_query(username):
+    return f"SELECT username, email, uid FROM Users WHERE Users.username='{username}';"
 
 # These three now return the value itself just for testing. We need to replace them with COUNT(1)
 def get_user_by_id(userid):
-    return 'SELECT username FROM Users WHERE Users.uid='+userid+';'
+    return f"SELECT username FROM Users WHERE Users.uid={userid};"
 
 def get_user_by_username(username):
     return f"SELECT username FROM Users WHERE Users.username='{username}';"
 
 def get_user_by_email(email):
-    return 'SELECT email FROM Users WHERE Users.email='+email+';'
+    return f"SELECT email FROM Users WHERE Users.email='{email}';"
 
 # Mostly a debug funcion
 def show_all_users():

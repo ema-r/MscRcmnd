@@ -32,7 +32,7 @@ def check_user_existence_username(username):
         return "Not found"
 
 def check_user_existence_email(email):
-    user = bhelpers.run_sql_query(bqueries.get_user_by_email(username), True)
+    user = bhelpers.run_sql_query(bqueries.get_user_by_email(email), True)
     try:
         if(email in user[0]):
             return "Found"
@@ -83,8 +83,8 @@ def add_user():
         password = user_data.get('password')
 
         #name = user_data.get('name')
-        #availabletokenquantity = user_data.get('availabletokenquantity')
-        #availabletokenquantity = 10
+        availabletokenquantity = user_data.get('availabletokenquantity')
+        availabletokenquantity = 10
         query = bqueries.insert_user_query(username, email, password)
 
         # Executing signup query (TO-BE completed)
@@ -106,7 +106,7 @@ def add_user():
 
 @server.route('/user_data/<userid>')
 def userdata(userid):
-    return jsonify({'user_data': bhelpers.run_sql_query((bqueries.get_user_data_query(userid)))})
+    return jsonify({'user_data': bhelpers.run_sql_query((bqueries.get_user_data_query(userid), True))})
 
 @server.route('/check_user_existence_id/<userid>')
 def user_exists(userid):
@@ -115,6 +115,10 @@ def user_exists(userid):
 @server.route('/check_user_existence_username/<username>')
 def user_exists_uname(username):
     return check_user_existence_username(username)
+
+@server.route('/check_user_existence_email/<email>')
+def user_exists_email(email):
+    return check_user_existence_email(email)
 
 if __name__ == '__main__':
     server.run()
