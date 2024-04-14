@@ -12,29 +12,34 @@ server.config["DEBUG"] = True
 CORS(server)
 
 def check_user_existence_id(userid):
-    result = False
-    found_json = jsonify({'found_user': bhelpers.run_sql_query(bqueries.get_user_by_id(userid))});
-    found_dict = json.loads(found_json);
-    if len(found_dict['found_user']) >= 1:
-        result = True
-    return jsonify({'exists': result})
+    user = bhelpers.run_sql_query(bqueries.get_user_by_id(userid), True)
+    try:
+        if(userid in user[0]):
+            return "Found"
+        else: return "Not found"
+    
+    except:
+        return "Not found"
 
 def check_user_existence_username(username):
-    result = False
-    found_json = jsonify({'found_user': bhelpers.run_sql_query(bqueries.get_user_by_username(username), True)});
-    #found_dict = json.loads(found_json);
-    print("found_json: ", found_json)
-    #if len(found_dict['found_user']) >= 1:
-    #    result = True
-    return jsonify({'exists': result})
+    user = bhelpers.run_sql_query(bqueries.get_user_by_username(username), True)
+    try:
+        if(username in user[0]):
+            return "Found"
+        else: return "Not found"
+    
+    except:
+        return "Not found"
 
 def check_user_existence_email(email):
-    result = False
-    found_json = jsonify({'found_user': bhelpers.run_sql_query(bqueries.get_user_by_email(email))});
-    found_dict = json.loads(found_json);
-    if len(found_dict['found_user']) >= 1:
-        result = True
-    return jsonify({'exists': result})
+    user = bhelpers.run_sql_query(bqueries.get_user_by_email(username), True)
+    try:
+        if(email in user[0]):
+            return "Found"
+        else: return "Not found"
+    
+    except:
+        return "Not found"
 
 
 @server.route('/reset')

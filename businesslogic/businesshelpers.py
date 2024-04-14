@@ -44,10 +44,10 @@ def run_sql_query(my_query, flag=False):
     if flag==True:
         result=cur.fetchall()
 
+
     else: conn.commit()
 
     conn.close()
-
     return result
 
 
