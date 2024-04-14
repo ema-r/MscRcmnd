@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 import sys
 from flask_cors import CORS
+import json
 
 # Defined by us
 import businessqueries as bqueries
@@ -9,6 +10,31 @@ import businesshelpers as bhelpers
 server = Flask(__name__)
 server.config["DEBUG"] = True
 CORS(server)
+
+def check_user_existence_id(userid):
+    result = False
+    found_json = jsonify({'found_user': bhelpers.run_sql_query(bqueries.get_user_by_id(userid))});
+    found_dict = json.loads(found_json);
+    if len(found_dict['found_user']) >= 1:
+        result = True
+    return jsonify({'exists': result})
+
+def check_user_existence_username(username):
+    result = False
+    found_json = jsonify({'found_user': bhelpers.run_sql_query(bqueries.get_user_by_username(username), True)});
+    #found_dict = json.loads(found_json);
+    print("found_json: ", found_json)
+    #if len(found_dict['found_user']) >= 1:
+    #    result = True
+    return jsonify({'exists': result})
+
+def check_user_existence_email(email):
+    result = False
+    found_json = jsonify({'found_user': bhelpers.run_sql_query(bqueries.get_user_by_email(email))});
+    found_dict = json.loads(found_json);
+    if len(found_dict['found_user']) >= 1:
+        result = True
+    return jsonify({'exists': result})
 
 
 @server.route('/reset')
@@ -69,10 +95,21 @@ def add_user():
         # Se la richiesta non è una richiesta POST, restituisci un errore 405 (Method Not Allowed)
         return jsonify({'error': 'Method not allowed'}), 405
 
-    
+#@server.route('/delete_user/<userid>')
+#def delete_user(userid):
+#
 
+@server.route('/user_data/<userid>')
+def userdata(userid):
+    return jsonify({'user_data': bhelpers.run_sql_query((bqueries.get_user_data_query(userid)))})
 
-   
+@server.route('/check_user_existence_id/<userid>')
+def user_exists(userid):
+    return check_user_existence_id(userid)
+
+@server.route('/check_user_existence_username/<username>')
+def user_exists_uname(username):
+    return check_user_existence_username(username)
 
 if __name__ == '__main__':
     server.run()
