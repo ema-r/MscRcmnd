@@ -15,31 +15,31 @@ def check_user_existence_id(userid):
     user = bhelpers.run_sql_query(bqueries.get_user_by_id(userid), True)
     try:
         if(userid in user[0]):
-            return "Found"
-        else: return "Not found"
+            return True
+        else: return False
     
     except:
-        return "Not found"
+        return False
 
 def check_user_existence_username(username):
     user = bhelpers.run_sql_query(bqueries.get_user_by_username(username), True)
     try:
         if(username in user[0]):
-            return "Found"
-        else: return "Not found"
+            return True
+        else: return False
     
     except:
-        return "Not found"
+        return False
 
 def check_user_existence_email(email):
     user = bhelpers.run_sql_query(bqueries.get_user_by_email(email), True)
     try:
         if(email in user[0]):
-            return "Found"
-        else: return "Not found"
+            return True
+        else: return False
     
     except:
-        return "Not found"
+        return False
 
 
 @server.route('/reset')
@@ -82,6 +82,10 @@ def add_user():
         email = user_data.get('email')
         password = user_data.get('password')
 
+        # Check if user is already registered
+        if(check_user_existence_email(email) or check_user_existence_username(username)):
+            return jsonify({'error': 'User already exists'}), 409 # Error 409, conflict
+
         #name = user_data.get('name')
         availabletokenquantity = user_data.get('availabletokenquantity')
         availabletokenquantity = 10
@@ -89,7 +93,6 @@ def add_user():
 
         # Executing signup query (TO-BE completed)
         bhelpers.run_sql_query(query)
-        bhelpers.run_sql_query(bqueries.show_all_users(), True)
 
         if not (username and email and password):
             return jsonify({'error': 'Missing required fields'}), 400
@@ -111,14 +114,6 @@ def userdata(userid):
 @server.route('/check_user_existence_id/<userid>')
 def user_exists(userid):
     return check_user_existence_id(userid)
-
-@server.route('/check_user_existence_username/<username>')
-def user_exists_uname(username):
-    return check_user_existence_username(username)
-
-@server.route('/check_user_existence_email/<email>')
-def user_exists_email(email):
-    return check_user_existence_email(email)
 
 if __name__ == '__main__':
     server.run()

@@ -60,7 +60,8 @@ def signup():
             flash("Successfully registered!", "success")
             return render_template('index.html', active_page='index')
         else:
-            return("Error during the signup process:", ret.status_code)
+            flash(error_handler(ret.status_code), 'danger')
+            return render_template('login.html', active_page='login')
 
     else:
         # If it's GET, return normal page
@@ -82,6 +83,14 @@ def login():
 
     # GET request
     return render_template('login.html', active_page='login')
+
+
+
+
+def error_handler(code):
+    if(code==409): return "User already registered, please login!"
+    else: return "Unknown error"
+
 
 
 if __name__ == "__main__":
