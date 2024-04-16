@@ -53,6 +53,7 @@ def signup():
         email = request.form['email']
         password = request.form['password']
 
+        # Sending data to businesslogic
         data={"username": username, "email": email, "password": password}
         ret=requests.post(bl_url+"users", json=data)
 
@@ -60,8 +61,8 @@ def signup():
             flash("Successfully registered!", "success")
             return render_template('index.html', active_page='index')
         else:
-            flash(error_handler(ret.status_code), 'danger')
-            return render_template('login.html', active_page='login')
+            flash(error_handler(ret.status_code, ret.json()), 'danger')
+            return render_template('signup.html', active_page='signup')
 
     else:
         # If it's GET, return normal page
@@ -87,9 +88,9 @@ def login():
 
 
 
-def error_handler(code):
-    if(code==409): return "User already registered, please login!"
-    else: return "Unknown error"
+def error_handler(code, txt={"error": "Unknown error!"} ):
+    if(code==409): return txt["error"]
+    else: return txt["error"]
 
 
 

@@ -69,23 +69,38 @@ def user():
         new_username = user_data.get('username')
         new_email = user_data.get('email')
 
-        if does_user_exists(new_username, new_email):
-            return jsonify({'error': "User already exists"}), 409
+        # Check if user already exists
+        try:
+            if does_username_exists(new_username):
+                return jsonify({'error': "Username already exists"}), 409 # Username already taken
 
+            if does_email_exists(new_email):
+                return jsonify({'error': "Email already registered"}), 409 # Email already registered
+
+        except:
+            return jsonify({'error': 'Cannot communicate with the db'}), 503
+
+
+        # User exists, we can now register him
         new_password = user_data.get('password')
         new_availabletokens = 10
 
-        if not (new_username and new_email and new_password):
-            return jsonify({'error': 'Missing required fields'}), 400
-
+        # New user instance from its model
         new_user = User(username=new_username, email=new_email, password=func.md5(new_password),
                         availabletokens=new_availabletokens)
 
-        session.add(new_user)
-        session.commit()
+        # Saving it in the db
+        try:
+            session.add(new_user)
+            session.commit()
+        except:
+            session.rollback()
+            return jsonify({'error': 'Error communicating with the db'}), 503
 
         return jsonify({'message': 'User added successfully'}), 200
 
+
+    # Method to retrieve users' data
     elif request.method == 'GET':
         users = session.execute(
                 select(User.username, User.id, User.email, User.availabletokens)
@@ -161,10 +176,20 @@ def racc(userid, reccid):
 # Utility functions
 
 # Check if user exist before signup
-def does_user_exists(username, email):
+
+# Check if username already taken
+def does_username_exists(username):
     user = session.execute(
-            select(User).where(User.username==username or User.email==email)).first()
-    print(user)
+            select(User).where(User.username==username)).first()
+    if user is None:
+        return False
+    else:
+        return True
+
+# Check if email already exists (so user already registered)    
+def does_email_exists(email):
+    user = session.execute(
+            select(User).where(User.email==email)).first()
     if user is None:
         return False
     else:
