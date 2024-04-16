@@ -6,7 +6,7 @@ import sys
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 
-engine = sqlalchemy.create_engine("mariadb+mariadbconnector://test_user:test@127.0.0.1:3306/test_database")
+engine = sqlalchemy.create_engine("mariadb+mariadbconnector://test_user:test@db:3306/test_database")
 
 Base = declarative_base()
 
@@ -48,7 +48,7 @@ def dbsetup():
     
     class Session(Base):
         __tablename__ = 'sessions'
-        sid = sqlalchemy.Column(sqlalchemy.Integer)
+        sid = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
         uid = sqlalchemy.Column(sqlalchemy.Integer)
         ttl = sqlalchemy.Column(sqlalchemy.Integer)     # In hours
     
