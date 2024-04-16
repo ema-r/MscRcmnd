@@ -1,29 +1,18 @@
+from flask import Flask, jsonify, request
+from flask_cors import CORS
+import json
+import sys
+
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 
 engine = sqlalchemy.create_engine("mariadb+mariadbconnector://test_user:test@127.0.0.1:3306/test_database")
 
+Base = declarative_base()
+
 server = Flask(__name__)
 server.config["DEBUG"] = True
 CORS(server)
-
-# Models. Find a way to move this elsewhere
-class Users(Base):
-    __tablename__ = 'users'
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    username = sqlalchemy.Column(sqlalchemy.String(length=30))
-    email    = sqlalchemy.Column(sqlalchemy.String(length=30))
-    password = sqlalchemy.Column(sqlalchemy.String(length=32))
-
-class Reccomandations(Base):
-    __tablename__ = 'Reccomandations'
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    artist   = sqlalchemy.Column(sqlalchemy.String(length=32))
-    songname = sqlalchemy.Column(sqlalchemy.String(length=32))
-    spotlink = sqlalchemy.Column(sqlalchemy.String(length=32))
-    userid   = sqlalchemy.Column(sqlalchemy.Integer)
-
-Base.metadata.create_all(engine);
 
 # Create a SQLAlchemy session
 Session = sqlalchemy.orm.sessionmaker()
@@ -35,23 +24,36 @@ session = Session()
 def hello():
     return bhelpers.json_return("Hi, this appears to work")
 
-## LEGACY ROUTES
-#@server.route('/reset')
-#def reset():
-#    bhelpers.run_sql_query("DROP TABLE Users;")
-#    dbsetup()
-#    return bhelpers.json_return("Success")
-#
-#@server.route('/database_initial_setup')
-#def dbsetup():
-#    bhelpers.run_sql_query(bqueries.get_conditional_user_table_creation_query())
-#    bhelpers.run_sql_query(bqueries.get_conditional_reccomandation_table_creation_query())
-#
-#    return bhelpers.json_return("The DB was succesfully initialized")
-#
+@server.route('/reset')
+def reset():
+    Base.metadata.drop_all(engine)
+    return "Success, db reset done."
 
-
-
+@server.route('/database_initial_setup')
+def dbsetup():
+    class Users(Base):
+        __tablename__ = 'users'
+        id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+        username = sqlalchemy.Column(sqlalchemy.String(length=30))
+        email    = sqlalchemy.Column(sqlalchemy.String(length=30))
+        password = sqlalchemy.Column(sqlalchemy.String(length=32))
+    
+    class Reccomandations(Base):
+        __tablename__ = 'reccomandations'
+        id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+        artist   = sqlalchemy.Column(sqlalchemy.String(length=32))
+        songname = sqlalchemy.Column(sqlalchemy.String(length=32))
+        spotlink = sqlalchemy.Column(sqlalchemy.String(length=32))
+        userid   = sqlalchemy.Column(sqlalchemy.Integer)
+    
+    class Session(Base):
+        __tablename__ = 'sessions'
+        sid = sqlalchemy.Column(sqlalchemy.Integer)
+        uid = sqlalchemy.Column(sqlalchemy.Integer)
+        ttl = sqlalchemy.Column(sqlalchemy.Integer)     # In hours
+    
+    Base.metadata.create_all(engine);
+    return "The DB was succesfully initialized"
 #
 ## Route to receive info on available number of tokens to request services
 #@server.route('/availabletokens/<userid>')
