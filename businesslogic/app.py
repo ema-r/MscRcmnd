@@ -5,15 +5,11 @@ import sys
 
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 engine = sqlalchemy.create_engine("mariadb+mariadbconnector://test_user:test@db:3306/test_database")
 
 Base = declarative_base()
-
-server = Flask(__name__)
-server.config["DEBUG"] = True
-CORS(server)
 
 class User(Base):
     __tablename__ = 'users'
@@ -42,6 +38,10 @@ Session = sqlalchemy.orm.sessionmaker()
 Session.configure(bind=engine)
 session = Session()
 
+server = Flask(__name__)
+server.config["DEBUG"] = True
+CORS(server)
+
 # Actual routes
 @server.route('/')
 def hello():
@@ -69,8 +69,8 @@ def dbsetup():
 #def racc(userid):
 #    return jsonify({'reccomandations_for_user': bhelpers.run_sql_query(bqueries.get_reccomandation_for_user_query(userid))})
 #
-@server.route('/add_user', methods=['POST'])
-def add_user():
+@server.route('/user', methods=['GET','POST'])
+def user():
     # Assume the data is sent as JSON in the request body
     if request.method == 'POST':
     # Get JSON data
@@ -93,32 +93,52 @@ def add_user():
 
         return jsonify({'message': 'User added successfully'}), 200
 
+    elif request.method == 'GET':
+        users = session.execute(
+                select(User.username, User.id, User.email, User.availabletokens)
+                ).all()
+        ind = 1
+        result = {}
+        for user in users:
+            name = 'user' + chr(ind)
+            user_result = []
+            for element in user:
+                user_result.append(element)
+            result[name] = user_result
+
+            ind += 1
+        print(result)
+        return jsonify(result)
+
     else:
         # Se la richiesta non è una richiesta POST, restituisci un errore 405 (Method Not Allowed)
         return jsonify({'error': 'Method not allowed'}), 405
 
-@server.route('/user_data/<uname>')
-def userdata(uname):
-    data_query = select(User).where(User.username==uname)
+@server.route('/user/<uid>', methods=['GET, DELETE'])
+def userdata(uid):
+    if request.method == 'GET':
+        user = session.execute(
+                select(User.username, User.email, User.availabletokens).where(User.id==uid)
+                ).first()
 
-    for row in engine.connect().execute(data_query):
-       print(row)
-    return "success"
-##@server.route('/delete_user/<userid>')
-##def delete_user(userid):
-##
-#
-#@server.route('/user_data/<userid>')
-#def userdata(userid):
-#    return jsonify({'user_data': bhelpers.run_sql_query((bqueries.get_user_data_query(userid), True))})
-#
+        return jsonify({'username':user[0], 'email':user[1], 'availabletokens':user[2]})
+
+    elif request.method == 'DELETE':
+        return jsonify({'result':'user not deleted (to be implemented)'})
+
+    else:
+        return jsonify({'error': 'Method not allowed'}), 405
+
+# Utility functions
+#def does_user_exists(id):
+    
 #@server.route('/check_user_existence_id/<userid>')
 #def user_exists(userid):
 #    return check_user_existence_id(userid)
 #
 #@server.route('/check_user_existence_username/<username>')
 #def user_exists_uname(username):
-#    return check_user_existence_username(username)
+#   return check_user_existence_username(username)
 #
 #@server.route('/check_user_existence_email/<email>')
 #def user_exists_email(email):
