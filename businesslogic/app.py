@@ -12,7 +12,7 @@ engine = sqlalchemy.create_engine("mariadb+mariadbconnector://test_user:test@db:
 Base = declarative_base()
 
 class User(Base):
-    __tablename__ = 'users'
+    __tablename__ = 'Users'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     username = sqlalchemy.Column(sqlalchemy.String(length=30))
     email    = sqlalchemy.Column(sqlalchemy.String(length=30))
@@ -20,7 +20,7 @@ class User(Base):
     availabletokens = sqlalchemy.Column(sqlalchemy.Integer)
 
 class Reccomandation(Base):
-    __tablename__ = 'reccomandations'
+    __tablename__ = 'Reccomandations'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     artist   = sqlalchemy.Column(sqlalchemy.String(length=32))
     songname = sqlalchemy.Column(sqlalchemy.String(length=32))
@@ -28,7 +28,7 @@ class Reccomandation(Base):
     userid   = sqlalchemy.Column(sqlalchemy.Integer)
 
 class Session(Base):
-    __tablename__ = 'sessions'
+    __tablename__ = 'Sessions'
     sid = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     uid = sqlalchemy.Column(sqlalchemy.Integer)
     ttl = sqlalchemy.Column(sqlalchemy.Integer)     # In hours
@@ -54,19 +54,24 @@ def reset():
 
 @server.route('/database_initial_setup')
 def dbsetup():
-    Base.metadata.create_all(engine);
+    Base.metadata.create_all(engine)
     return jsonify({'result': "DB succesfully initialized"})
 
+
+# SIGN UP route
 @server.route('/users', methods=['GET','POST'])
 def user():
     # Assume the data is sent as JSON in the request body
     if request.method == 'POST':
     # Get JSON data
         user_data = request.json
-        
         # Insert user data
         new_username = user_data.get('username')
         new_email = user_data.get('email')
+
+        if does_user_exists(new_username, new_email):
+            return jsonify({'error': "User already exists"}), 409
+
         new_password = user_data.get('password')
         new_availabletokens = 10
 
@@ -154,20 +159,22 @@ def racc(userid, reccid):
         return jsonify({'error': 'Method not allowed'}), 405
 
 # Utility functions
-def does_user_exists(uid):
+
+# Check if user exist before signup
+def does_user_exists(username, email):
     user = session.execute(
-            select(User).where(User.id==uid)
-            ).first()
+            select(User).where(User.username==username or User.email==email)).first()
+    print(user)
     if user is None:
         return False
     else:
         return True
 
+
 def get_user_id(uname):
     user = session.execute(
             select(User.id).where(User.username==uname)
             ).first()
-
     if user is None:
         return ''
     else:
