@@ -45,31 +45,19 @@ CORS(server)
 # Actual routes
 @server.route('/')
 def hello():
-    return bhelpers.json_return("Hi, this appears to work")
+    return jsonify({'result': "Hi, this appears to work"})
 
 @server.route('/reset')
 def reset():
     Base.metadata.drop_all(engine)
-    return "Success, db reset done."
+    return jsonify({'result': "DB succesfully reset"})
 
 @server.route('/database_initial_setup')
 def dbsetup():
-    
     Base.metadata.create_all(engine);
-    return "The DB was succesfully initialized"
-#
-## Route to receive info on available number of tokens to request services
-#@server.route('/availabletokens/<userid>')
-#def availabletokens(userid):
-#    return jsonify({'available_tokens': bhelpers.run_sql_query(bqueries.get_available_token_query(userid))})  # :)
-#
-#
-#@server.route('/prevracc/<userid>')
-## Instantiate Connection
-#def racc(userid):
-#    return jsonify({'reccomandations_for_user': bhelpers.run_sql_query(bqueries.get_reccomandation_for_user_query(userid))})
-#
-@server.route('/user', methods=['GET','POST'])
+    return jsonify({'result': "DB succesfully initialized"})
+
+@server.route('/users', methods=['GET','POST'])
 def user():
     # Assume the data is sent as JSON in the request body
     if request.method == 'POST':
@@ -85,7 +73,7 @@ def user():
         if not (new_username and new_email and new_password):
             return jsonify({'error': 'Missing required fields'}), 400
 
-        new_user = User(username=new_username, email=new_email, password=new_password,
+        new_user = User(username=new_username, email=new_email, password=func.md5(new_password),
                         availabletokens=new_availabletokens)
 
         session.add(new_user)
@@ -97,30 +85,29 @@ def user():
         users = session.execute(
                 select(User.username, User.id, User.email, User.availabletokens)
                 ).all()
+
         ind = 1
         result = {}
         for user in users:
-            name = 'user' + chr(ind)
-            user_result = []
-            for element in user:
-                user_result.append(element)
-            result[name] = user_result
-
+            name = 'user_' + str(ind)
+            result[name] = {'username':user[0], 'user_id':user[1],
+                            'email':user[2], 'availabletokens':user[3]}
             ind += 1
-        print(result)
+        #print(result)
         return jsonify(result)
 
     else:
         # Se la richiesta non è una richiesta POST, restituisci un errore 405 (Method Not Allowed)
         return jsonify({'error': 'Method not allowed'}), 405
 
-@server.route('/user/<uid>', methods=['GET, DELETE'])
+@server.route('/user/<uid>', methods=['GET', 'DELETE'])
 def userdata(uid):
     if request.method == 'GET':
         user = session.execute(
-                select(User.username, User.email, User.availabletokens).where(User.id==uid)
+                select(User.username, User.email, User.availabletokens).where(User.id == uid)
                 ).first()
-
+        if user is None:
+            return jsonify({'error': 'no such user'})
         return jsonify({'username':user[0], 'email':user[1], 'availabletokens':user[2]})
 
     elif request.method == 'DELETE':
@@ -129,20 +116,62 @@ def userdata(uid):
     else:
         return jsonify({'error': 'Method not allowed'}), 405
 
+@server.route('/user/<userid>/reccomandations', methods=['GET', 'POST'])
+def raccs(userid):
+    if request.method == 'GET' :
+        reccomandations = session.execute(
+                select(Reccomandation.songname, Reccomandation.artist).where(Reccomandation.userid == userid)
+                ).all()
+
+        ind = 1
+        result = {}
+        for recc in reccomandations:
+            name = 'reccomandation_' + str(ind)
+            result[name] = {'song_name': recc[0], 'artist': recc[1]}
+            ind += 1
+
+        return jsonify(result)
+
+    elif request.method == 'POST':
+        return jsonify({'error': 'to be implemented'})
+
+    else:
+        return jsonify({'error': 'Method not allowed'}), 405
+
+@server.route('/user/<userid>/reccomandation/<reccid>', methods=['GET'])
+def racc(userid, reccid):
+    if request.method == 'GET':
+        recc = session.execute(
+                select(Reccomandation.songname, Reccomandation.artist, Reccomandation.spotlink).where(
+                    Reccomandation.userid == userid, Reccomandation.id == reccid
+                    )
+                )
+        if recc is None:
+            return jsonify({'error': 'no such reccomandation_'})
+        return jsonify({'song_name': recc[0], 'artist': recc[1], 'spotify_link': recc[2]})
+
+    else:
+        return jsonify({'error': 'Method not allowed'}), 405
+
 # Utility functions
-#def does_user_exists(id):
-    
-#@server.route('/check_user_existence_id/<userid>')
-#def user_exists(userid):
-#    return check_user_existence_id(userid)
-#
-#@server.route('/check_user_existence_username/<username>')
-#def user_exists_uname(username):
-#   return check_user_existence_username(username)
-#
-#@server.route('/check_user_existence_email/<email>')
-#def user_exists_email(email):
-#    return check_user_existence_email(email)
+def does_user_exists(uid):
+    user = session.execute(
+            select(User).where(User.id==uid)
+            ).first()
+    if user is None:
+        return False
+    else:
+        return True
+
+def get_user_id(uname):
+    user = session.execute(
+            select(User.id).where(User.username==uname)
+            ).first()
+
+    if user is None:
+        return ''
+    else:
+        return user[0]
 
 if __name__ == '__main__':
     server.run()
