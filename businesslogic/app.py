@@ -5,6 +5,7 @@ import sys
 
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import select
 
 engine = sqlalchemy.create_engine("mariadb+mariadbconnector://test_user:test@db:3306/test_database")
 
@@ -13,6 +14,28 @@ Base = declarative_base()
 server = Flask(__name__)
 server.config["DEBUG"] = True
 CORS(server)
+
+class User(Base):
+    __tablename__ = 'users'
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    username = sqlalchemy.Column(sqlalchemy.String(length=30))
+    email    = sqlalchemy.Column(sqlalchemy.String(length=30))
+    password = sqlalchemy.Column(sqlalchemy.String(length=32))
+    availabletokens = sqlalchemy.Column(sqlalchemy.Integer)
+
+class Reccomandation(Base):
+    __tablename__ = 'reccomandations'
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    artist   = sqlalchemy.Column(sqlalchemy.String(length=32))
+    songname = sqlalchemy.Column(sqlalchemy.String(length=32))
+    spotlink = sqlalchemy.Column(sqlalchemy.String(length=32))
+    userid   = sqlalchemy.Column(sqlalchemy.Integer)
+
+class Session(Base):
+    __tablename__ = 'sessions'
+    sid = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    uid = sqlalchemy.Column(sqlalchemy.Integer)
+    ttl = sqlalchemy.Column(sqlalchemy.Integer)     # In hours
 
 # Create a SQLAlchemy session
 Session = sqlalchemy.orm.sessionmaker()
@@ -31,26 +54,6 @@ def reset():
 
 @server.route('/database_initial_setup')
 def dbsetup():
-    class Users(Base):
-        __tablename__ = 'users'
-        id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-        username = sqlalchemy.Column(sqlalchemy.String(length=30))
-        email    = sqlalchemy.Column(sqlalchemy.String(length=30))
-        password = sqlalchemy.Column(sqlalchemy.String(length=32))
-    
-    class Reccomandations(Base):
-        __tablename__ = 'reccomandations'
-        id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-        artist   = sqlalchemy.Column(sqlalchemy.String(length=32))
-        songname = sqlalchemy.Column(sqlalchemy.String(length=32))
-        spotlink = sqlalchemy.Column(sqlalchemy.String(length=32))
-        userid   = sqlalchemy.Column(sqlalchemy.Integer)
-    
-    class Session(Base):
-        __tablename__ = 'sessions'
-        sid = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-        uid = sqlalchemy.Column(sqlalchemy.Integer)
-        ttl = sqlalchemy.Column(sqlalchemy.Integer)     # In hours
     
     Base.metadata.create_all(engine);
     return "The DB was succesfully initialized"
@@ -66,36 +69,41 @@ def dbsetup():
 #def racc(userid):
 #    return jsonify({'reccomandations_for_user': bhelpers.run_sql_query(bqueries.get_reccomandation_for_user_query(userid))})
 #
-#
-#@server.route('/add_user', methods=['POST'])
-#def add_user():
-#    # Assume the data is sent as JSON in the request body
-#    if request.method == 'POST':
-#    # Get JSON data
-#        user_data = request.json
-#        
-#        username = user_data.get('username')
-#        email = user_data.get('email')
-#        password = user_data.get('password')
-#
-#        #name = user_data.get('name')
-#        availabletokenquantity = user_data.get('availabletokenquantity')
-#        availabletokenquantity = 10
-#        query = bqueries.insert_user_query(username, email, password)
-#
-#        # Executing signup query (TO-BE completed)
-#        bhelpers.run_sql_query(query)
-#        bhelpers.run_sql_query(bqueries.show_all_users(), True)
-#
-#        if not (username and email and password):
-#            return jsonify({'error': 'Missing required fields'}), 400
-#
-#        return jsonify({'message': 'User added successfully'}), 200
-#
-#    else:
-#        # Se la richiesta non è una richiesta POST, restituisci un errore 405 (Method Not Allowed)
-#        return jsonify({'error': 'Method not allowed'}), 405
-#
+@server.route('/add_user', methods=['POST'])
+def add_user():
+    # Assume the data is sent as JSON in the request body
+    if request.method == 'POST':
+    # Get JSON data
+        user_data = request.json
+        
+        # Insert user data
+        new_username = user_data.get('username')
+        new_email = user_data.get('email')
+        new_password = user_data.get('password')
+        new_availabletokens = 10
+
+        if not (new_username and new_email and new_password):
+            return jsonify({'error': 'Missing required fields'}), 400
+
+        new_user = User(username=new_username, email=new_email, password=new_password,
+                        availabletokens=new_availabletokens)
+
+        session.add(new_user)
+        session.commit()
+
+        return jsonify({'message': 'User added successfully'}), 200
+
+    else:
+        # Se la richiesta non è una richiesta POST, restituisci un errore 405 (Method Not Allowed)
+        return jsonify({'error': 'Method not allowed'}), 405
+
+@server.route('/user_data/<uname>')
+def userdata(uname):
+    data_query = select(User).where(User.username==uname)
+
+    for row in engine.connect().execute(data_query):
+       print(row)
+    return "success"
 ##@server.route('/delete_user/<userid>')
 ##def delete_user(userid):
 ##
