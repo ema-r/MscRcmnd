@@ -54,7 +54,7 @@ def signup():
         password = request.form['password']
 
         data={"username": username, "email": email, "password": password}
-        ret=requests.post(bl_url+"add_user", json=data)
+        ret=requests.post(bl_url+"user", json=data)
 
         if ret.status_code == 200:
             flash("Successfully registered!", "success")
