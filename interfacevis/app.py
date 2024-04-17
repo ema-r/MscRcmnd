@@ -77,10 +77,20 @@ def login():
         password = request.form['password']
 
         # Check input data 
-        if username == 'admin' and password == 'password':
-            return "Login successful! Welcome, {}".format(username)
+        data = {"username": username, "password": password}
+        ret = requests.post(bl_url + f"users/login", json = data)
+
+        if ret.status_code == 200:
+            flash("Login successful!", "success")
+            return render_template('index.html', active_page='index')
         else:
-            return "Login failed. Please check your username and password."
+            flash("Login failed, wrong username or password", "Failure")
+            return render_template('login.html', active_page='login')
+
+        # if username == 'admin' and password == 'password':
+        #     return "Login successful! Welcome, {}".format(username)
+        # else:
+        #     return "Login failed. Please check your username and password."
 
     # GET request
     return render_template('login.html', active_page='login')
