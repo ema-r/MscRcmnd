@@ -2,7 +2,7 @@
 
 /* Custom styles for the hero section */
 .hero {
-    padding: 100px 0;
+    padding: 20px 0;
     background-color: #f8f9fa; /* Light grey */
 }
 
@@ -19,11 +19,6 @@
     text-align: center;
 }
 
-/* Custom styles for the footer */
-.footer {
-    padding: 20px 0;
-    color: white;
-}
 
 /* Additional custom styles */
 .navbar-brand {
@@ -53,10 +48,11 @@
 }
 
 .footer {
-    position: fixed;
-    left: 0;
-    bottom: 0;
+    padding: 2px;
     width: 100%;
+    position: fixed;
+    margin-top: auto;
+    bottom: 0;
 }
 
 

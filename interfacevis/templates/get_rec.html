@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+
+<div class="container-search">
+    <div class="searchBar">
+        <input type="text" id="searchInput" placeholder="Search for a song...">
+        <button id="clearResults" class="clearResults" onclick="clearSearchResults()">Clear</button>
+    </div>
+    <div class="searchResults" id="searchResults"></div>
+    <div class="songDetails" id="songDetails"></div>
+</div>
+
+<script>
+    const searchInput = document.getElementById('searchInput');
+    const searchResultsContainer = document.getElementById('searchResults');
+    const songDetailsContainer = document.getElementById('songDetails');
+    const clearResultsButton = document.getElementById('clearResults');
+
+    searchInput.addEventListener('input', async () => {
+        const query = searchInput.value.trim();
+        if (query.length === 0) {
+            clearSearchResults();
+            return;
+        }
+
+        try {
+            // Replace the fetch call with your actual fetch code
+            const response = await fetch(`/search?q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+            displayResults(data);
+        } catch (error) {
+            console.error('Error fetching search results:', error);
+        }
+    });
+
+    function displayResults(results) {
+        searchResultsContainer.innerHTML = '';
+        results.forEach(result => {
+            const resultElement = document.createElement('div');
+            resultElement.classList.add('searchResult');
+            resultElement.addEventListener('click', () => {
+                displaySongDetails(result);
+            });
+            resultElement.innerHTML = `
+                <div class="resultContent">
+                    <p class="song-info">${result.song_name} - ${result.artist_name}</p>
+                    ${result.album_image ? `<div class="album-cover-frame"><img class="album-cover-small" src="${result.album_image}" alt="Album Cover"></div>` : ''}
+                </div>
+            `;
+            searchResultsContainer.appendChild(resultElement);
+        });
+    }
+
+    function displaySongDetails(song) {
+        clearSearchResults();
+        const songDetails = document.createElement('div');
+        songDetails.classList.add('songDetail');
+        songDetails.innerHTML = `
+            <h2 class="songTitle">${song.song_name}</h2>
+            <div class="album-cover-big-container">
+                <img class="albumCoverBig" src="${song.album_image}" alt="Album Cover">
+            </div>
+            <a href="https://www.google.com" target="_blank" class="redirectButton">More Info</a>
+            <a href="https://open.spotify.com/search/${encodeURIComponent(song.song_name)}" target="_blank" class="spotifyButton">Listen on Spotify</a>
+        `;
+        songDetailsContainer.appendChild(songDetails);
+    }
+
+    function clearSearchResults() {
+        searchInput.value = '';
+        searchResultsContainer.innerHTML = '';
+        songDetailsContainer.innerHTML = '';
+    }
+</script>
+
+{% endblock %}
