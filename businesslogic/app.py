@@ -154,25 +154,24 @@ def login():
         return jsonify({'error': 'Method not allowed'}), 405
 
 # Serves user info for GET, deletes user with DELETE
-@server.route('/user/<uid>', methods=['GET', 'DELETE'])
+@server.route('/user/<uid>', methods=['POST', 'DELETE'])
 @jwt_required()
 def userdata(uid):
     # New check that utilizes the JWT to check if user is authorized to access; any JWT will clear
     # the preliminary check, this one will make sure requested user id is the same as the one of
     # user making the request
-    if not is_user(get_jwt_identity(), uid):
-        return jsonify({'error': 'Not authorized'}), 403
+    if request.method == 'POST':
 
-    if request.method == 'GET':
+        if not is_user(get_jwt_identity(), uid):
+            return jsonify({'error': 'Not authorized'}), 403
+
         user = session.execute(
                 select(User.username, User.email, User.availabletokens).where(User.id == uid)
                 ).first()
+
         if user is None:
             return jsonify({'error': 'no such user'})
         return jsonify({'username':user[0], 'email':user[1], 'availabletokens':user[2]})
-
-    elif request.method == 'DELETE':
-        return jsonify({'result':'user not deleted (to be implemented)'})
 
     else:
         return jsonify({'error': 'Method not allowed'}), 405

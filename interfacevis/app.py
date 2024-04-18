@@ -1,8 +1,13 @@
 from flask import Flask, render_template, request, flash, jsonify
+from flask_jwt_extended import set_access_cookies, unset_jwt_cookies, JWTManager
 import requests
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
+
+app.config["JWT_TOKEN_LOCATION"] = ["headers"]
+
+jwt = JWTManager(app)
 
 # Businesslogic base url
 bl_url="http://mscrcmnd-businesslogic-1:5000/"
@@ -15,8 +20,6 @@ def homepage():
 @app.route('/about')
 def about():
     return render_template('about.html', active_page='about')
-
-
 
         
 @app.route("/contact", methods=['GET', 'POST']) 
@@ -79,10 +82,14 @@ def login():
         # Check input data 
         data = {"username": username, "password": password}
         ret = requests.post(bl_url + f"users/login", json = data)
+        print(ret)
 
         if ret.status_code == 200:
             flash("Login successful!", "success")
-            return render_template('index.html', active_page='index')
+            resp = make_response(render_template('index.html', active_page='index'))
+            #resp.set_cookie('access_token', ret.json.access_token)
+            localStorage.setItem('jwt', ret.access_token)
+            return resp
         else:
             flash("Login failed, wrong username or password", "Failure")
             return render_template('login.html', active_page='login')
@@ -95,9 +102,29 @@ def login():
     # GET request
     return render_template('login.html', active_page='login')
 
+# Route meant to test JWT cookies working as intended.
+@app.route('/user', methods=['GET'])
+def userdata():
+    if request.method == 'GET':
+        const options = {
+            method: 'post',
+            headers: {
+                Authorization: 'Bearer ${localStorage.getItem('jwt')}',
+            }
+        }
 
+        ret = requests.post(bl_url + f"users/login", options)
 
+        if ret.status_code == 200:
+            return ret
+        else:
+            flash("no permission")
+            return render_template('index.html', active_page='index')
 
+    else:
+        return jsonify{}
+
+        
 def error_handler(code, txt={"error": "Unknown error!"} ):
     if(code==409): return txt["error"]
     else: return txt["error"]
