@@ -1,11 +1,15 @@
 from flask import Flask, render_template, request, flash, jsonify
-from flask_jwt_extended import set_access_cookies, unset_jwt_cookies, JWTManager
+from flask_jwt_extended import (JWTManager, create_access_token, jwt_required,
+    get_jwt_identity, set_access_cookies, unset_jwt_cookies)
 import requests
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
-app.config["JWT_TOKEN_LOCATION"] = ["headers"]
+app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
+app.config['JWT_COOKIE_CSRF_PROTECT'] = False
+app.config['JWT_SECRET_KEY'] = 'super-secret'
+
 
 jwt = JWTManager(app)
 
@@ -86,10 +90,13 @@ def login():
 
         if ret.status_code == 200:
             flash("Login successful!", "success")
-            resp = make_response(render_template('index.html', active_page='index'))
-            #resp.set_cookie('access_token', ret.json.access_token)
-            localStorage.setItem('jwt', ret.access_token)
-            return resp
+            access_token = create_access_token(identity=username)
+
+            resp = jsonify({"login": 'True'})
+
+            set_access_cookies(resp, access_token)
+            return resp, 200
+            #return render_template('index.html', active_page='index')
         else:
             flash("Login failed, wrong username or password", "Failure")
             return render_template('login.html', active_page='login')
@@ -102,27 +109,23 @@ def login():
     # GET request
     return render_template('login.html', active_page='login')
 
+
+@app.route('/logout', methods=['POST'])
+def logout():
+    resp = jsonify({"logout": 'True'})
+    unset_jwt_cookies(resp)
+    return resp, 200
+
 # Route meant to test JWT cookies working as intended.
 @app.route('/user', methods=['GET'])
+@jwt_required()
 def userdata():
     if request.method == 'GET':
-        const options = {
-            method: 'post',
-            headers: {
-                Authorization: 'Bearer ${localStorage.getItem('jwt')}',
-            }
-        }
-
-        ret = requests.post(bl_url + f"users/login", options)
-
-        if ret.status_code == 200:
-            return ret
-        else:
-            flash("no permission")
-            return render_template('index.html', active_page='index')
+        username = get_jwt_identity()
+        return jsonify({'hello': 'from {}'.format(username)}), 200
 
     else:
-        return jsonify{}
+        return jsonify("{}")
 
         
 def error_handler(code, txt={"error": "Unknown error!"} ):
