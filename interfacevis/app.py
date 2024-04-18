@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, flash, jsonify
+from flask import Flask, render_template, make_response, request, flash, jsonify
 from flask_jwt_extended import (JWTManager, create_access_token, jwt_required,
     get_jwt_identity, set_access_cookies, unset_jwt_cookies)
 import requests
@@ -92,11 +92,12 @@ def login():
             flash("Login successful!", "success")
             access_token = create_access_token(identity=username)
 
-            resp = jsonify({"login": 'True'})
-
+            
+            resp = make_response(render_template('index.html', active_page='index'))
             set_access_cookies(resp, access_token)
+
+            flash("Login successful, redirecting to index", "Success")
             return resp, 200
-            #return render_template('index.html', active_page='index')
         else:
             flash("Login failed, wrong username or password", "Failure")
             return render_template('login.html', active_page='login')
