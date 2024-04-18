@@ -1,17 +1,11 @@
 import json
 
 from flask import Flask, jsonify, request
-from flask_cors import CORS
 
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import select, func
 
-from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
-
-secrets = {}
-with open("./business_secrets.json", "r") as rf:
-    secrets = json.load(rf)
 
 engine = sqlalchemy.create_engine("mariadb+mariadbconnector://test_user:test@db:3306/test_database")
 Base = declarative_base()
@@ -32,12 +26,6 @@ class Reccomandation(Base):
     spotlink = sqlalchemy.Column(sqlalchemy.String(length=32))
     userid   = sqlalchemy.Column(sqlalchemy.Integer)
 
-#class Session(Base):
-#    __tablename__ = 'Sessions'
-#    sid = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-#    uid = sqlalchemy.Column(sqlalchemy.Integer)
-#    ttl = sqlalchemy.Column(sqlalchemy.Integer)     # In hours
-
 # Create a SQLAlchemy session
 Session = sqlalchemy.orm.sessionmaker()
 Session.configure(bind=engine)
@@ -46,9 +34,7 @@ session = Session()
 # Server creation and config
 server = Flask(__name__)
 server.config["DEBUG"] = True
-server.config["JWT_SECRET_KEY"] = secrets['jwt_secret']
 
-CORS(server)
 
 # Actual routes
 @server.route('/')
@@ -69,10 +55,9 @@ def dbsetup():
 # SIGN UP route
 @server.route('/users', methods=['GET','POST'])
 def user():
+    user_data = request.json
     # Assume the data is sent as JSON in the request body
     if request.method == 'POST':
-    # Get JSON data
-        user_data = request.json
         # Insert user data
         new_username = user_data.get('username')
         new_email = user_data.get('email')
@@ -110,25 +95,13 @@ def user():
 
     # Method to retrieve users' data
     elif request.method == 'GET':
-        users = session.execute(
-                select(User.username, User.id, User.email, User.availabletokens)
-                ).all()
-
-        ind = 1
-        result = {}
-        for user in users:
-            name = 'user_' + str(ind)
-            result[name] = {'username':user[0], 'user_id':user[1],
-                            'email':user[2], 'availabletokens':user[3]}
-            ind += 1
-        
-        return jsonify(result)
+        return jsonify({})
 
     else:
         # Se la richiesta non è una richiesta POST, restituisci un errore 405 (Method Not Allowed)
         return jsonify({'error': 'Method not allowed'}), 405
 
-# Allows login exclusively via post, returns json containing the needed JWT
+# LOGIN ROUTE
 @server.route('/users/login', methods=['POST'])
 def login():
     if request.method == 'POST':
@@ -136,35 +109,27 @@ def login():
         pword = func.md5(request.json.get("password", None))
 
         uid = get_user_id(uname)
+        print(uid)
 
         userdata = session.execute(
                 select(User.password).where(User.username == uname)
                 ).first()
 
         if userdata is None:
-            return jsonify({'result': 'wrong username or password'})
+            return jsonify({'result': 'wrong username or password'}), 409
         
-        if userdata[0] != pword:
-            return jsonify({'result': 'wrong username or password'})
-        
-        access_token = create_access_token(identity=uid)
-        return jsonify({'result': 'successfully logged in', 'access_token': access_token})
+        return jsonify({'result': 'successfully logged in', 'user_id': uid}), 200
 
     else:
         return jsonify({'error': 'Method not allowed'}), 405
 
 # Serves user info for GET, deletes user with DELETE
 @server.route('/user/<uid>', methods=['POST', 'DELETE'])
-@jwt_required()
 def userdata(uid):
     # New check that utilizes the JWT to check if user is authorized to access; any JWT will clear
     # the preliminary check, this one will make sure requested user id is the same as the one of
     # user making the request
     if request.method == 'POST':
-
-        if not is_user(get_jwt_identity(), uid):
-            return jsonify({'error': 'Not authorized'}), 403
-
         user = session.execute(
                 select(User.username, User.email, User.availabletokens).where(User.id == uid)
                 ).first()
@@ -177,7 +142,6 @@ def userdata(uid):
         return jsonify({'error': 'Method not allowed'}), 405
 
 @server.route('/user/<userid>/reccomandations', methods=['GET', 'POST'])
-@jwt_required()
 def raccs(userid):
 
     if not is_user(get_jwt_identity(), userid):
@@ -204,7 +168,6 @@ def raccs(userid):
         return jsonify({'error': 'Method not allowed'}), 405
 
 @server.route('/user/<userid>/reccomandation/<reccid>', methods=['GET'])
-@jwt_required()
 def racc(userid, reccid):
 
     if not is_user(get_jwt_identity(), userid):
@@ -222,6 +185,20 @@ def racc(userid, reccid):
 
     else:
         return jsonify({'error': 'Method not allowed'}), 405
+
+
+@server.route('/user_id', methods=['POST'])
+def get():
+    print("getting user from id")
+    user_data = request.json.get('id', None)
+    user = session.execute(
+                select(User.username, User.email).where(User.id == user_data)).first()
+    
+    print(user)
+    if user is None:
+        return jsonify({'error': "User doesn't exist"}), 404
+    else:
+        return jsonify({'username': user[0], 'email': user[1]})
 
 
 # Utility functions

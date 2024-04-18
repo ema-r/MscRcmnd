@@ -1,17 +1,8 @@
-from flask import Flask, render_template, make_response, request, flash, jsonify
-from flask_jwt_extended import (JWTManager, create_access_token, jwt_required,
-    get_jwt_identity, set_access_cookies, unset_jwt_cookies)
+from flask import Flask, render_template, make_response, request, flash, jsonify, session
 import requests
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
-
-app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
-app.config['JWT_COOKIE_CSRF_PROTECT'] = False
-app.config['JWT_SECRET_KEY'] = 'super-secret'
-
-
-jwt = JWTManager(app)
 
 # Businesslogic base url
 bl_url="http://mscrcmnd-businesslogic-1:5000/"
@@ -90,48 +81,48 @@ def login():
 
         if ret.status_code == 200:
             flash("Login successful!", "success")
-            access_token = create_access_token(identity=username)
-
-            
-            resp = make_response(render_template('index.html', active_page='index'))
-            set_access_cookies(resp, access_token)
-
-            flash("Login successful, redirecting to index", "Success")
-            return resp, 200
+            session['logged_in'] = True
+            session['user_id'] = ret.json()['user_id']
+            return render_template('index.html', active_page='index')
         else:
-            flash("Login failed, wrong username or password", "Failure")
+            flash(error_handler(ret.status_code, ret.json()), 'danger')
             return render_template('login.html', active_page='login')
 
-        # if username == 'admin' and password == 'password':
-        #     return "Login successful! Welcome, {}".format(username)
-        # else:
-        #     return "Login failed. Please check your username and password."
 
     # GET request
     return render_template('login.html', active_page='login')
 
 
-@app.route('/logout', methods=['POST'])
+@app.route('/logout')
 def logout():
-    resp = jsonify({"logout": 'True'})
-    unset_jwt_cookies(resp)
-    return resp, 200
+    session.clear()
+    flash('Successfully logged out')
+    return render_template('index.html', active_page='index')
 
-# Route meant to test JWT cookies working as intended.
+# Return JSON of user
 @app.route('/user', methods=['GET'])
-@jwt_required()
 def userdata():
     if request.method == 'GET':
-        username = get_jwt_identity()
-        return jsonify({'hello': 'from {}'.format(username)}), 200
+        if(session['user_id']== None):
+            flash("Error, you're not logged in", "danger")
+            return render_template('index.html', active_page='index')
+        else:
+            user = get_user(session['user_id'])
+            return user, 200
 
     else:
-        return jsonify("{}")
+        return jsonify("{'error': 'Method not allowed'}"), 405
 
         
 def error_handler(code, txt={"error": "Unknown error!"} ):
     if(code==409): return txt["error"]
     else: return txt["error"]
+
+def get_user(user_id):
+    data = {'id': user_id}
+    ret = requests.post(bl_url +"user_id", json = data)
+    return ret.json()
+
 
 
 
