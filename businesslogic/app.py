@@ -26,9 +26,7 @@ class User(Base):
         return check_password_hash(self.password, psw)
     
     def __repr__(self):
-        print("User "+self.username + ", email: "+self.email+", password hash: "+self.password)
-    
-
+        return {'id': self.id, 'username': self.username, 'email': self.email}
 
 class Reccomandation(Base):
     __tablename__ = 'Reccomandations'
@@ -61,8 +59,8 @@ def user():
     # Assume the data is sent as JSON in the request body
     if request.method == 'POST':
         # Insert user data
-        new_username = user_data.get('username')
-        new_email = user_data.get('email')
+        new_username = user_data.get('username').lower()
+        new_email = user_data.get('email').lower()
 
         # Check if user already exists
         try:
@@ -86,8 +84,6 @@ def user():
         # Set hashed password
         new_user.set_password(new_password)
 
-        new_user.__repr__()
-
         # Saving it in the db
         try:
             session.add(new_user)
@@ -108,7 +104,7 @@ def user():
 @server.route('/users/login', methods=['POST'])
 def login():
     if request.method == 'POST':
-        uname = request.json.get("username", None)
+        uname = request.json.get("username", None).lower()
         pword = (request.json.get("password", None))
 
         uid = get_user_id(uname)
@@ -139,6 +135,18 @@ def get():
         return jsonify({'error': "User doesn't exist"}), 404
     else:
         return jsonify({'username': user[0], 'email': user[1]})
+    
+
+@server.route('/delete/<int:user_id>')
+def delete(user_id):
+    print(user_id)
+    if delete_user(user_id):
+        return jsonify({'result': 'User deleted successfully'}), 200
+    else:
+        return jsonify({'error': 'Cannot delete user'})
+
+
+
 
 
 # Utility functions
@@ -174,6 +182,17 @@ def get_user_id(uname):
 
 def is_user(token_uid, tried_uid):
     if tried_uid != token_uid:
+        return False
+    return True
+
+def delete_user(user_id):
+    try:
+        session.query(User).filter(User.id == user_id).delete()
+        session.commit()
+    except SQLAlchemyError as e:
+        error=str(e.__dict__['orig'])
+        print(error)
+        session.rollback()
         return False
     return True
 

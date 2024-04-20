@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, flash, jsonify, session, redi
 import requests
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'
+app.secret_key = 'secret-key'
 
 # Businesslogic base url
 bl_url="http://mscrcmnd-businesslogic-1:5000/"
@@ -122,11 +122,33 @@ def profile():
         return jsonify("{'error': 'Method not allowed'}"), 405
 
         
+@app.route('/delete', methods=['GET'])
+def delete():
+    if request.method == 'GET':
+        if 'username' in session:
+            print(session['username'])
+            ret = requests.get(bl_url+"delete/"+str(session['user_id']))
+            if ret.status_code == 200:
+                session.clear()
+                flash("Account deleted successfully", 'success')
+                return redirect('/')
+
+            else: 
+                return error_handler(ret.status_code, ret.json())
+        
+        else:
+            flash("You must be logged in", 'danger')
+            return redirect('/')
+    
+    else:
+        flash(error_handler(405, 'Method not allowed'), 'danger')
+        return redirect("/")
+
+
 
 # AUX FUNCTIONS
 def error_handler(code, txt={"error": "Unknown error!"} ):
-    if(code==409): return txt["error"]
-    else: return txt["error"]
+    return txt["error"]
 
 def get_user(user_id):
     data = {'id': user_id}
