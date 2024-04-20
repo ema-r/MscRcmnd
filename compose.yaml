@@ -29,9 +29,6 @@ services:
       - 15003:5000
     networks:
       - internalnet
-        #    depends_on:
-        #      db:
-        #        condition: service_healthy
 
   interfacevis:
     build: ./interfacevis
@@ -49,6 +46,14 @@ services:
       - 15001:5000
     networks:
       - interfacenet
+      - internalnet
+
+  interfacespot:
+    build: ./interfacespot
+    restart: always
+    ports:
+      - 15004:5000
+    networks:
       - internalnet
 
 
