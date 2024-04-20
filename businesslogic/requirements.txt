@@ -1,5 +1,4 @@
 Flask==3.0.2
 mariadb
-flask_cors==3.0.10
-flask-jwt-extended
+werkzeug
 SQLAlchemy

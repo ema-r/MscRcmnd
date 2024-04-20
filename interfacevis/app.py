@@ -1,4 +1,4 @@
-from flask import Flask, render_template, make_response, request, flash, jsonify, session
+from flask import Flask, render_template, request, flash, jsonify, session, redirect
 import requests
 
 app = Flask(__name__)
@@ -10,10 +10,14 @@ bl_url="http://mscrcmnd-businesslogic-1:5000/"
 
 @app.route('/')
 def homepage():
+    if 'username' in session:
+        return render_template('index.html', active_page='index', username=session['username'])
     return render_template('index.html', active_page='index')
 
 @app.route('/about')
 def about():
+    if('username' in session):
+        return render_template('about.html', active_page='about', username=session['username'])
     return render_template('about.html', active_page='about')
 
         
@@ -39,6 +43,9 @@ def contact():
         return jsonify({"Name": name})
 
     # If it's a GET request, render the contact form
+    else:
+        if 'username' in session:
+            return render_template('contact.html', active_page='contact', username=session['username'])
     return render_template('contact.html', active_page='contact')
     
 
@@ -83,37 +90,40 @@ def login():
             flash("Login successful!", "success")
             session['logged_in'] = True
             session['user_id'] = ret.json()['user_id']
-            return render_template('index.html', active_page='index')
+            session['username'] = username
+            return redirect('/')
         else:
             flash(error_handler(ret.status_code, ret.json()), 'danger')
             return render_template('login.html', active_page='login')
 
 
     # GET request
+    if "username" in session:
+        return redirect("/")
     return render_template('login.html', active_page='login')
 
 
 @app.route('/logout')
 def logout():
     session.clear()
-    flash('Successfully logged out')
+    flash('Successfully logged out', 'success')
     return render_template('index.html', active_page='index')
 
-# Return JSON of user
-@app.route('/user', methods=['GET'])
-def userdata():
+# Return profile page of user
+@app.route('/profile', methods=['GET'])
+def profile():
     if request.method == 'GET':
-        if(session['user_id']== None):
+        if 'username' in session:
+            return render_template('profile.html', active_page='profile', username=session['username'])
+        else:
             flash("Error, you're not logged in", "danger")
             return render_template('index.html', active_page='index')
-        else:
-            user = get_user(session['user_id'])
-            return user, 200
-
     else:
         return jsonify("{'error': 'Method not allowed'}"), 405
 
         
+
+# AUX FUNCTIONS
 def error_handler(code, txt={"error": "Unknown error!"} ):
     if(code==409): return txt["error"]
     else: return txt["error"]

@@ -1,10 +1,11 @@
 import json
-
+from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, jsonify, request
 
 import sqlalchemy
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import select, func
+from sqlalchemy import select
 
 
 engine = sqlalchemy.create_engine("mariadb+mariadbconnector://test_user:test@db:3306/test_database")
@@ -12,11 +13,22 @@ Base = declarative_base()
 
 class User(Base):
     __tablename__ = 'Users'
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    username = sqlalchemy.Column(sqlalchemy.String(length=30))
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, nullable=False)
+    username = sqlalchemy.Column(sqlalchemy.String(length=30), unique=True)
     email    = sqlalchemy.Column(sqlalchemy.String(length=30))
-    password = sqlalchemy.Column(sqlalchemy.String(length=32))
+    password = sqlalchemy.Column(sqlalchemy.Text()) # password hash is bigger than a string
     availabletokens = sqlalchemy.Column(sqlalchemy.Integer)
+
+    def set_password(self, new_password):
+        self.password = generate_password_hash(new_password)
+    
+    def check_password(self, psw):
+        return check_password_hash(self.password, psw)
+    
+    def __repr__(self):
+        print("User "+self.username + ", email: "+self.email+", password hash: "+self.password)
+    
+
 
 class Reccomandation(Base):
     __tablename__ = 'Reccomandations'
@@ -40,16 +52,6 @@ server.config["DEBUG"] = True
 @server.route('/')
 def hello():
     return jsonify({'result': "Hi, this appears to work"})
-
-@server.route('/reset')
-def reset():
-    Base.metadata.drop_all(engine)
-    return jsonify({'result': "DB succesfully reset"})
-
-@server.route('/database_initial_setup')
-def dbsetup():
-    Base.metadata.create_all(engine)
-    return jsonify({'result': "DB succesfully initialized"})
 
 
 # SIGN UP route
@@ -79,23 +81,24 @@ def user():
         new_availabletokens = 10
 
         # New user instance from its model
-        new_user = User(username=new_username, email=new_email, password=func.md5(new_password),
+        new_user = User(username=new_username, email=new_email,
                         availabletokens=new_availabletokens)
+        # Set hashed password
+        new_user.set_password(new_password)
+
+        new_user.__repr__()
 
         # Saving it in the db
         try:
             session.add(new_user)
             session.commit()
-        except:
+        except(SQLAlchemyError) as e:
+            error = str(e.__dict__['orig'])
+            print(error)
             session.rollback()
-            return jsonify({'error': 'Error communicating with the db'}), 503
+            return jsonify({'error': "Cannot connect to database, try again later"}), 503
 
         return jsonify({'message': 'User added successfully'}), 200
-
-
-    # Method to retrieve users' data
-    elif request.method == 'GET':
-        return jsonify({})
 
     else:
         # Se la richiesta non è una richiesta POST, restituisci un errore 405 (Method Not Allowed)
@@ -106,82 +109,19 @@ def user():
 def login():
     if request.method == 'POST':
         uname = request.json.get("username", None)
-        pword = func.md5(request.json.get("password", None))
+        pword = (request.json.get("password", None))
 
         uid = get_user_id(uname)
-        print(uid)
 
-        userdata = session.execute(
-                select(User.password).where(User.username == uname)
-                ).first()
+        userdata = session.query(User).filter(User.username == uname).first()
 
-        if userdata is None:
-            return jsonify({'result': 'wrong username or password'}), 409
+        if(userdata is None):
+            return jsonify({'error': 'User does not exist'})
         
-        return jsonify({'result': 'successfully logged in', 'user_id': uid}), 200
-
-    else:
-        return jsonify({'error': 'Method not allowed'}), 405
-
-# Serves user info for GET, deletes user with DELETE
-@server.route('/user/<uid>', methods=['POST', 'DELETE'])
-def userdata(uid):
-    # New check that utilizes the JWT to check if user is authorized to access; any JWT will clear
-    # the preliminary check, this one will make sure requested user id is the same as the one of
-    # user making the request
-    if request.method == 'POST':
-        user = session.execute(
-                select(User.username, User.email, User.availabletokens).where(User.id == uid)
-                ).first()
-
-        if user is None:
-            return jsonify({'error': 'no such user'})
-        return jsonify({'username':user[0], 'email':user[1], 'availabletokens':user[2]})
-
-    else:
-        return jsonify({'error': 'Method not allowed'}), 405
-
-@server.route('/user/<userid>/reccomandations', methods=['GET', 'POST'])
-def raccs(userid):
-
-    if not is_user(get_jwt_identity(), userid):
-        return jsonify({'error': 'Not authorized'}), 403
-
-    if request.method == 'GET' :
-        reccomandations = session.execute(
-                select(Reccomandation.songname, Reccomandation.artist).where(Reccomandation.userid == userid)
-                ).all()
-
-        ind = 1
-        result = {}
-        for recc in reccomandations:
-            name = 'reccomandation_' + str(ind)
-            result[name] = {'song_name': recc[0], 'artist': recc[1]}
-            ind += 1
-
-        return jsonify(result)
-
-    elif request.method == 'POST':
-        return jsonify({'error': 'to be implemented'})
-
-    else:
-        return jsonify({'error': 'Method not allowed'}), 405
-
-@server.route('/user/<userid>/reccomandation/<reccid>', methods=['GET'])
-def racc(userid, reccid):
-
-    if not is_user(get_jwt_identity(), userid):
-        return jsonify({'error': 'Not authorized'}), 403
-
-    if request.method == 'GET':
-        recc = session.execute(
-                select(Reccomandation.songname, Reccomandation.artist, Reccomandation.spotlink).where(
-                    Reccomandation.userid == userid, Reccomandation.id == reccid
-                    )
-                )
-        if recc is None:
-            return jsonify({'error': 'no such reccomandation_'})
-        return jsonify({'song_name': recc[0], 'artist': recc[1], 'spotify_link': recc[2]})
+        if (userdata.check_password(pword)):
+            return jsonify({'result': 'successfully logged in', 'user_id': uid}), 200
+        
+        else: return jsonify({'error': 'wrong username or password'}), 409
 
     else:
         return jsonify({'error': 'Method not allowed'}), 405
@@ -236,6 +176,18 @@ def is_user(token_uid, tried_uid):
     if tried_uid != token_uid:
         return False
     return True
+
+
+# Server initialization
+@server.route('/reset')
+def reset():
+    Base.metadata.drop_all(engine)
+    return jsonify({'result': "DB succesfully reset"})
+
+@server.route('/database_initial_setup')
+def dbsetup():
+    Base.metadata.create_all(engine)
+    return jsonify({'result': "DB succesfully initialized"})
 
 if __name__ == '__main__':
     server.run()
