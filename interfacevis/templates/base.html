@@ -35,12 +35,22 @@
                     <li class="nav-item {% if active_page == 'contact' %}active{% endif %}">
                         <a class="nav-link {% if active_page == 'contact' %}active-text{% endif %}" href="{{ url_for('contact') }}">Contact</a>
                     </li>
+
+                    {% if username %}
+                    <li class="nav-item {% if active_page == 'profile' %}active{% endif %}">
+                        <a class="nav-link {% if active_page == 'profile' %}active-text{% endif %}" href="{{ url_for('profile') }}">Profile</a>
+                    </li>
+                    <li class="nav-item {% if active_page == 'logout' %}active{% endif %}">
+                        <a class="nav-link {% if active_page == 'logout' %}active-text{% endif %}" href="{{ url_for('logout') }}" id="logout-button">Logout</a>
+                    </li>
+                    {% else %}
                     <li class="nav-item {% if active_page == 'signup' %}active{% endif %}">
                         <a class="nav-link {% if active_page == 'signup' %}active-text{% endif %}" href="{{ url_for('signup') }}">Sign Up</a>
                     </li>
                     <li class="nav-item {% if active_page == 'login' %}active{% endif %}">
                         <a class="nav-link {% if active_page == 'login' %}active-text{% endif %}" href="{{ url_for('login') }}">Login</a>
                     </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
@@ -78,5 +88,15 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    {% if username %}
+    <script>
+        document.getElementById('logout-button').addEventListener('click', function(event) {
+            if (!confirm('Are you sure you want to logout?')) {
+                event.preventDefault(); // Cancel the default action (logout link)
+            }
+        });
+    </script>
+    {% endif %}
 </body>
 </html>

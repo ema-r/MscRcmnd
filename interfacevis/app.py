@@ -1,8 +1,8 @@
-from flask import Flask, render_template, request, flash, jsonify
+from flask import Flask, render_template, request, flash, jsonify, session, redirect
 import requests
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'
+app.secret_key = 'secret-key'
 
 # Businesslogic base url
 bl_url="http://mscrcmnd-businesslogic-1:5000/"
@@ -10,13 +10,15 @@ bl_url="http://mscrcmnd-businesslogic-1:5000/"
 
 @app.route('/')
 def homepage():
+    if 'username' in session:
+        return render_template('index.html', active_page='index', username=session['username'])
     return render_template('index.html', active_page='index')
 
 @app.route('/about')
 def about():
+    if('username' in session):
+        return render_template('about.html', active_page='about', username=session['username'])
     return render_template('about.html', active_page='about')
-
-
 
         
 @app.route("/contact", methods=['GET', 'POST']) 
@@ -41,6 +43,9 @@ def contact():
         return jsonify({"Name": name})
 
     # If it's a GET request, render the contact form
+    else:
+        if 'username' in session:
+            return render_template('contact.html', active_page='contact', username=session['username'])
     return render_template('contact.html', active_page='contact')
     
 
@@ -77,20 +82,79 @@ def login():
         password = request.form['password']
 
         # Check input data 
-        if username == 'admin' and password == 'password':
-            return "Login successful! Welcome, {}".format(username)
+        data = {"username": username, "password": password}
+        ret = requests.post(bl_url + f"users/login", json = data)
+        print(ret)
+
+        if ret.status_code == 200:
+            flash("Login successful!", "success")
+            session['logged_in'] = True
+            session['user_id'] = ret.json()['user_id']
+            session['username'] = username
+            return redirect('/')
         else:
-            return "Login failed. Please check your username and password."
+            flash(error_handler(ret.status_code, ret.json()), 'danger')
+            return render_template('login.html', active_page='login')
+
 
     # GET request
+    if "username" in session:
+        return redirect("/")
     return render_template('login.html', active_page='login')
 
 
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('Successfully logged out', 'success')
+    return render_template('index.html', active_page='index')
+
+# Return profile page of user
+@app.route('/profile', methods=['GET'])
+def profile():
+    if request.method == 'GET':
+        if 'username' in session:
+            return render_template('profile.html', active_page='profile', username=session['username'])
+        else:
+            flash("Error, you're not logged in", "danger")
+            return render_template('index.html', active_page='index')
+    else:
+        return jsonify("{'error': 'Method not allowed'}"), 405
+
+        
+@app.route('/delete', methods=['GET'])
+def delete():
+    if request.method == 'GET':
+        if 'username' in session:
+            print(session['username'])
+            ret = requests.get(bl_url+"delete/"+str(session['user_id']))
+            if ret.status_code == 200:
+                session.clear()
+                flash("Account deleted successfully", 'success')
+                return redirect('/')
+
+            else: 
+                return error_handler(ret.status_code, ret.json())
+        
+        else:
+            flash("You must be logged in", 'danger')
+            return redirect('/')
+    
+    else:
+        flash(error_handler(405, 'Method not allowed'), 'danger')
+        return redirect("/")
 
 
+
+# AUX FUNCTIONS
 def error_handler(code, txt={"error": "Unknown error!"} ):
-    if(code==409): return txt["error"]
-    else: return txt["error"]
+    return txt["error"]
+
+def get_user(user_id):
+    data = {'id': user_id}
+    ret = requests.post(bl_url +"user_id", json = data)
+    return ret.json()
+
 
 
 

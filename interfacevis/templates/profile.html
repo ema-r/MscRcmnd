@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+
+<h1 class="display-4">Welcome, {{ username }}</h1>
+
+<a href="{{ url_for('delete') }}" class="btn btn-danger btn-lg btn-block">Delete account</a>
+
+{% endblock %}
