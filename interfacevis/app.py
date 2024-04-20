@@ -84,7 +84,6 @@ def login():
         # Check input data 
         data = {"username": username, "password": password}
         ret = requests.post(bl_url + f"users/login", json = data)
-        print(ret)
 
         if ret.status_code == 200:
             flash("Login successful!", "success")
@@ -114,7 +113,8 @@ def logout():
 def profile():
     if request.method == 'GET':
         if 'username' in session:
-            return render_template('profile.html', active_page='profile', username=session['username'])
+            user = get_user(session['user_id'])
+            return render_template('profile.html', active_page='profile', user = user)
         else:
             flash("Error, you're not logged in", "danger")
             return render_template('index.html', active_page='index')
@@ -143,6 +143,21 @@ def delete():
     else:
         flash(error_handler(405, 'Method not allowed'), 'danger')
         return redirect("/")
+    
+
+@app.route('/profile/add_tokens/<int:val>', methods=['GET'])
+def add_tokens(val):
+    if 'username' in session:
+        print(session['username'])
+        ret = requests.get(bl_url+'add_token/'+str(session['user_id'])+"/"+str(val))
+        
+        if ret.status_code == 200:
+            flash(f"Successfully added {val} tokens", 'success')
+            return profile()
+        else:
+            print('ERROR')
+            flash(error_handler(ret.status_code, ret.json()), 'danger')
+            return profile()
 
 
 
@@ -151,7 +166,7 @@ def error_handler(code, txt={"error": "Unknown error!"} ):
     return txt["error"]
 
 def get_user(user_id):
-    data = {'id': user_id}
+    data = {'id': str(user_id)}
     ret = requests.post(bl_url +"user_id", json = data)
     return ret.json()
 
