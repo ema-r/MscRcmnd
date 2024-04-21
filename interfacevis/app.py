@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, flash, jsonify, session, redi
 import requests
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'
+app.secret_key = 'secret-key'
 
 # Businesslogic base url
 bl_url="http://mscrcmnd-businesslogic-1:5000/"
@@ -10,14 +10,10 @@ bl_url="http://mscrcmnd-businesslogic-1:5000/"
 
 @app.route('/')
 def homepage():
-    if 'username' in session:
-        return render_template('index.html', active_page='index', username=session['username'])
     return render_template('index.html', active_page='index')
 
 @app.route('/about')
 def about():
-    if('username' in session):
-        return render_template('about.html', active_page='about', username=session['username'])
     return render_template('about.html', active_page='about')
 
         
@@ -44,9 +40,7 @@ def contact():
 
     # If it's a GET request, render the contact form
     else:
-        if 'username' in session:
-            return render_template('contact.html', active_page='contact', username=session['username'])
-    return render_template('contact.html', active_page='contact')
+        return render_template('contact.html', active_page='contact')
     
 
 # SIGNUP
@@ -70,6 +64,8 @@ def signup():
             return render_template('signup.html', active_page='signup')
 
     else:
+        if('username' in session):
+            return redirect("/")
         # If it's GET, return normal page
         return render_template('signup.html', active_page='signup')
 
@@ -84,7 +80,6 @@ def login():
         # Check input data 
         data = {"username": username, "password": password}
         ret = requests.post(bl_url + f"users/login", json = data)
-        print(ret)
 
         if ret.status_code == 200:
             flash("Login successful!", "success")
@@ -114,7 +109,8 @@ def logout():
 def profile():
     if request.method == 'GET':
         if 'username' in session:
-            return render_template('profile.html', active_page='profile', username=session['username'])
+            user = get_user(session['user_id'])
+            return render_template('profile.html', active_page='profile', user = user)
         else:
             flash("Error, you're not logged in", "danger")
             return render_template('index.html', active_page='index')
@@ -122,14 +118,50 @@ def profile():
         return jsonify("{'error': 'Method not allowed'}"), 405
 
         
+@app.route('/delete', methods=['GET'])
+def delete():
+    if request.method == 'GET':
+        if 'username' in session:
+            ret = requests.get(bl_url+"delete/"+str(session['user_id']))
+            if ret.status_code == 200:
+                session.clear()
+                flash("Account deleted successfully", 'success')
+                return redirect('/')
+
+            else: 
+                return error_handler(ret.status_code, ret.json())
+        
+        else:
+            flash("You must be logged in", 'danger')
+            return redirect('/')
+    
+    else:
+        flash(error_handler(405, 'Method not allowed'), 'danger')
+        return redirect("/")
+    
+
+@app.route('/profile/add_tokens/<int:val>', methods=['GET'])
+def add_tokens(val):
+    if 'username' in session:
+        print(session['username'])
+        ret = requests.get(bl_url+'add_token/'+str(session['user_id'])+"/"+str(val))
+        
+        if ret.status_code == 200:
+            flash(f"Successfully added {val} tokens", 'success')
+            return profile()
+        else:
+            print('ERROR')
+            flash(error_handler(ret.status_code, ret.json()), 'danger')
+            return profile()
+
+
 
 # AUX FUNCTIONS
 def error_handler(code, txt={"error": "Unknown error!"} ):
-    if(code==409): return txt["error"]
-    else: return txt["error"]
+    return txt["error"]
 
 def get_user(user_id):
-    data = {'id': user_id}
+    data = {'id': str(user_id)}
     ret = requests.post(bl_url +"user_id", json = data)
     return ret.json()
 

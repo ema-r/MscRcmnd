@@ -5,7 +5,7 @@ from flask import Flask, jsonify, request
 import sqlalchemy
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 
 engine = sqlalchemy.create_engine("mariadb+mariadbconnector://test_user:test@db:3306/test_database")
@@ -25,10 +25,12 @@ class User(Base):
     def check_password(self, psw):
         return check_password_hash(self.password, psw)
     
-    def __repr__(self):
-        print("User "+self.username + ", email: "+self.email+", password hash: "+self.password)
+    def to_dict(self):
+        return {'id': self.id,
+            'username': self.username,
+            'email': self.email,
+            'tokens': self.availabletokens}
     
-
 
 class Reccomandation(Base):
     __tablename__ = 'Reccomandations'
@@ -61,8 +63,8 @@ def user():
     # Assume the data is sent as JSON in the request body
     if request.method == 'POST':
         # Insert user data
-        new_username = user_data.get('username')
-        new_email = user_data.get('email')
+        new_username = user_data.get('username').lower()
+        new_email = user_data.get('email').lower()
 
         # Check if user already exists
         try:
@@ -86,8 +88,6 @@ def user():
         # Set hashed password
         new_user.set_password(new_password)
 
-        new_user.__repr__()
-
         # Saving it in the db
         try:
             session.add(new_user)
@@ -108,7 +108,7 @@ def user():
 @server.route('/users/login', methods=['POST'])
 def login():
     if request.method == 'POST':
-        uname = request.json.get("username", None)
+        uname = request.json.get("username", None).lower()
         pword = (request.json.get("password", None))
 
         uid = get_user_id(uname)
@@ -116,7 +116,7 @@ def login():
         userdata = session.query(User).filter(User.username == uname).first()
 
         if(userdata is None):
-            return jsonify({'error': 'User does not exist'})
+            return jsonify({'error': 'User does not exist'}), 404
         
         if (userdata.check_password(pword)):
             return jsonify({'result': 'successfully logged in', 'user_id': uid}), 200
@@ -129,16 +129,34 @@ def login():
 
 @server.route('/user_id', methods=['POST'])
 def get():
-    print("getting user from id")
     user_data = request.json.get('id', None)
-    user = session.execute(
-                select(User.username, User.email).where(User.id == user_data)).first()
+    user = session.query(User).get(user_data)
     
-    print(user)
     if user is None:
         return jsonify({'error': "User doesn't exist"}), 404
     else:
-        return jsonify({'username': user[0], 'email': user[1]})
+        print(user.to_dict())
+        return jsonify(user.to_dict())
+    
+
+@server.route('/delete/<int:user_id>')
+def delete(user_id):
+    print(user_id)
+    if delete_user(user_id):
+        return jsonify({'result': 'User deleted successfully'}), 200
+    else:
+        return jsonify({'error': 'Cannot delete user'}), 409
+    
+
+@server.route('/add_token/<int:user_id>/<int:val>')
+def add_token(user_id, val):
+    if(add_token_to_user(user_id, val)):
+        return jsonify({'success': f'added {val} tokens'}), 200
+    else: return jsonify({'error': 'Cannot add tokens'}), 409
+
+
+
+
 
 
 # Utility functions
@@ -176,6 +194,28 @@ def is_user(token_uid, tried_uid):
     if tried_uid != token_uid:
         return False
     return True
+
+def delete_user(user_id):
+    try:
+        session.query(User).filter(User.id == user_id).delete()
+        session.commit()
+    except SQLAlchemyError as e:
+        error=str(e.__dict__['orig'])
+        print(error)
+        session.rollback()
+        return False
+    return True
+
+def add_token_to_user(user_id, val):
+    try:
+        user=session.query(User).filter_by(id=user_id).update({User.availabletokens: User.availabletokens + val})
+        session.commit()
+        return True
+    except:
+        session.rollback()
+        return False
+
+        
 
 
 # Server initialization
