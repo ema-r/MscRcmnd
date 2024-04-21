@@ -1,8 +1,14 @@
 from flask import Flask, render_template, request, flash, jsonify, session, redirect
 import requests
+from datetime import timedelta
 
 app = Flask(__name__)
 app.secret_key = 'secret-key'
+
+# Session cookies security
+app.permanent_session_lifetime = timedelta(days=60)
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
 
 # Businesslogic base url
 bl_url="http://mscrcmnd-businesslogic-1:5000/"
@@ -77,6 +83,8 @@ def login():
         username = request.form['username']
         password = request.form['password']
 
+        remember = request.form.get('remember')
+
         # Check input data 
         data = {"username": username, "password": password}
         ret = requests.post(bl_url + f"users/login", json = data)
@@ -86,6 +94,11 @@ def login():
             session['logged_in'] = True
             session['user_id'] = ret.json()['user_id']
             session['username'] = username
+
+            if remember:
+                session.permanent = True
+            else:
+                session.permanent = False
             return redirect('/')
         else:
             flash(error_handler(ret.status_code, ret.json()), 'danger')
