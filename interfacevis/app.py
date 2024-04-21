@@ -10,14 +10,10 @@ bl_url="http://mscrcmnd-businesslogic-1:5000/"
 
 @app.route('/')
 def homepage():
-    if 'username' in session:
-        return render_template('index.html', active_page='index', username=session['username'])
     return render_template('index.html', active_page='index')
 
 @app.route('/about')
 def about():
-    if('username' in session):
-        return render_template('about.html', active_page='about', username=session['username'])
     return render_template('about.html', active_page='about')
 
         
@@ -44,9 +40,7 @@ def contact():
 
     # If it's a GET request, render the contact form
     else:
-        if 'username' in session:
-            return render_template('contact.html', active_page='contact', username=session['username'])
-    return render_template('contact.html', active_page='contact')
+        return render_template('contact.html', active_page='contact')
     
 
 # SIGNUP
@@ -70,6 +64,8 @@ def signup():
             return render_template('signup.html', active_page='signup')
 
     else:
+        if('username' in session):
+            return redirect("/")
         # If it's GET, return normal page
         return render_template('signup.html', active_page='signup')
 
@@ -126,7 +122,6 @@ def profile():
 def delete():
     if request.method == 'GET':
         if 'username' in session:
-            print(session['username'])
             ret = requests.get(bl_url+"delete/"+str(session['user_id']))
             if ret.status_code == 200:
                 session.clear()
