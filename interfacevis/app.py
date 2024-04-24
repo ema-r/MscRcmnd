@@ -1,9 +1,11 @@
 from flask import Flask, render_template, request, flash, jsonify, session, redirect
 import requests
 from datetime import timedelta
+from hashlib import md5
 
 app = Flask(__name__)
 app.secret_key = 'secret-key'
+
 
 # Session cookies security
 app.permanent_session_lifetime = timedelta(days=60)
@@ -31,9 +33,7 @@ def contact():
         email = request.form['email']
         message = request.form['message']
 
-        #(add own logic here)
-
-        # For demonstration purposes, let's print the form data
+        # For now just prints the message 
         print(f"Name: {name}")
         print(f"Email: {email}")
         print(f"Message: {message}")
@@ -42,7 +42,7 @@ def contact():
         flash('Thank you for contacting us!', 'success')
 
         # Redirect to the homepage
-        return jsonify({"Name": name})
+        return render_template('index.html', active_page='index')
 
     # If it's a GET request, render the contact form
     else:
@@ -123,7 +123,7 @@ def profile():
     if request.method == 'GET':
         if 'username' in session:
             user = get_user(session['user_id'])
-            return render_template('profile.html', active_page='profile', user = user)
+            return render_template('profile.html', active_page='profile', user = user, pic = get_pic(user["email"]))
         else:
             flash("Error, you're not logged in", "danger")
             return render_template('index.html', active_page='index')
@@ -171,6 +171,7 @@ def add_tokens(val):
 
 # AUX FUNCTIONS
 def error_handler(code, txt={"error": "Unknown error!"} ):
+    print("Error: "+code)
     return txt["error"]
 
 def get_user(user_id):
@@ -178,7 +179,9 @@ def get_user(user_id):
     ret = requests.post(bl_url +"user_id", json = data)
     return ret.json()
 
-
+def get_pic(email, size=200, default='identicon', rating='g'):
+    hash = md5(email.lower().encode('utf-8')).hexdigest()
+    return f"https://www.gravatar.com/avatar/{hash}?s={size}&d={default}&r={rating}"
 
 
 if __name__ == "__main__":

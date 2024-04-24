@@ -63,4 +63,9 @@
     }
 }
 
+.profile-picture {
+    max-width: 150px; /* Set the maximum width of the profile picture */
+    height: auto; /* Maintain aspect ratio */
+}
+
 

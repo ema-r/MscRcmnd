@@ -127,6 +127,7 @@ def login():
         return jsonify({'error': 'Method not allowed'}), 405
 
 
+# path to get the whole user from its id
 @server.route('/user_id', methods=['POST'])
 def get():
     user_data = request.json.get('id', None)

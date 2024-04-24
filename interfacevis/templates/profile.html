@@ -8,28 +8,32 @@
 
 <h1 class="display-4">Welcome, {{ user.username }}</h1>
 
-<div class="container mt-5">
-    <h1>Available tokens</h1>
-    <!-- Button to load user's tokens -->
-    <button type="button" class="btn btn-primary btn-sm" id="tokensButton" onclick="toggleTokens()">Load available tokens</button>
-    <div id="tokens" style="display: none;">{{user.tokens}}</div>
+<div class="container">
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="row">
+                <!-- User Profile Picture -->
+                <div class="card">
+                    <div class="card-body justify-content-center align-items-center">
+                        <img src="{{ pic }}" class="card-img-top img-fluid profile-picture" alt="User Profile Picture">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- User Information -->
+                <div class="card">
+                    <div class="card-body text-left">
+                        <p class="card-text mb-0"><strong>Username:</strong> {{ user.username }}</p>
+                        <p class="card-text mb-0"><strong>Email:</strong> {{ user.email }}</p>
+                        <p class="card-text mb-0"><strong>Tokens:</strong> {{ user.tokens }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <h5>Stuff about music recommendations</h5>
+        </div>
+    </div>
 </div>
-
-<div class="container mt-2">
-    <a href="{{ url_for('delete') }}" class="btn btn-danger btn-lg btn-block">Delete account</a>
-</div>
-
-
-
-<script>
-    function toggleTokens() {
-        var tokensDiv = document.getElementById("tokens");
-        var toggleButton = document.getElementById("tokensButton");
-
-        if (tokensDiv.style.display === "none") {
-            tokensDiv.style.display = "block";
-        }
-    }
-</script>
-
 {% endblock %}
