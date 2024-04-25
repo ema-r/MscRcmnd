@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, flash, jsonify, session, redi
 import requests
 from datetime import timedelta
 from hashlib import md5
+import json
 
 app = Flask(__name__)
 app.secret_key = 'secret-key'
@@ -14,6 +15,8 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 # Businesslogic base url
 bl_url="http://mscrcmnd-businesslogic-1:5000/"
+# Spotify container base url
+sp_url="http://mscrcmnd-interfacespot-1:5000/"
 
 
 @app.route('/')
@@ -131,6 +134,30 @@ def profile():
         return jsonify("{'error': 'Method not allowed'}"), 405
 
         
+@app.route('/get_rec', methods=['GET', 'POST'])
+def get_rec():
+    if "username" in session:
+        if request.method == 'POST':
+            # Process the form data
+            song_title = request.form.get('song_title')
+
+            results = retr_link(song_title)
+            print(results, flush=True)
+            if results:
+                return render_template('get_rec.html', results = results)
+            else: 
+                flash("error", "danger")
+                return render_template('get_rec.html', results = None)
+        
+        elif request.method == "GET":
+            return render_template('get_rec.html', results=None)
+    
+    else: 
+        flash("You must be logged in", "danger")
+        return render_template("index.html", active_page="index")
+
+
+
 @app.route('/delete', methods=['GET'])
 def delete():
     if request.method == 'GET':
@@ -171,7 +198,7 @@ def add_tokens(val):
 
 # AUX FUNCTIONS
 def error_handler(code, txt={"error": "Unknown error!"} ):
-    print("Error: "+code)
+    print("Error: "+str(code))
     return txt["error"]
 
 def get_user(user_id):
@@ -182,6 +209,18 @@ def get_user(user_id):
 def get_pic(email, size=200, default='identicon', rating='g'):
     hash = md5(email.lower().encode('utf-8')).hexdigest()
     return f"https://www.gravatar.com/avatar/{hash}?s={size}&d={default}&r={rating}"
+
+
+def retr_link(song):
+    data = {'title': song}
+    data = json.dumps(data)
+    headers = {'Content-Type': 'application/json'}
+    ret=requests.post(sp_url+"spotify_search", data=data, headers=headers)
+    if(ret.status_code==200):
+        return ret.json()
+    else:
+        error_handler(ret.status_code)
+        return None
 
 
 if __name__ == "__main__":
