@@ -24,6 +24,9 @@ session = Session()
 app = Flask(__name__)
 
 # needs query on user id, and reccomendations from the user. We need to add a music id table
+@app.route('/get_reccomandation/<int:user_id>')
+def get_rec(user_id):
+    return jsonify({'message': 'Reccomendation successfully added'}), 200
 
 if __name__ == '__main__':
     app.run()

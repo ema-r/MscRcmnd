@@ -30,15 +30,26 @@ class User(Base):
             'username': self.username,
             'email': self.email,
             'tokens': self.availabletokens}
-    
 
-class Reccomandation(Base):
-    __tablename__ = 'Reccomandations'
+class Song(Base):
+    __tablename__ = 'Songs'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     artist   = sqlalchemy.Column(sqlalchemy.String(length=32))
     songname = sqlalchemy.Column(sqlalchemy.String(length=32))
     spotlink = sqlalchemy.Column(sqlalchemy.String(length=32))
-    userid   = sqlalchemy.Column(sqlalchemy.Integer)
+
+class Reccomandation(Base):
+    __tablename__ = 'Reccomandations'
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    userid = sqlalchemy.Column(sqlalchemy.Integer)
+    songid = sqlalchemy.Column(sqlalchemy.Integer)
+
+class Review(Base):
+    __tablename__ = 'Review'
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    userid = sqlalchemy.Column(sqlalchemy.Integer)
+    songid = sqlalchemy.Column(sqlalchemy.Integer)
+    rating = sqlalchemy.Column(sqlalchemy.float)
 
 # Create a SQLAlchemy session
 Session = sqlalchemy.orm.sessionmaker()
@@ -147,7 +158,6 @@ def delete(user_id):
         return jsonify({'result': 'User deleted successfully'}), 200
     else:
         return jsonify({'error': 'Cannot delete user'}), 409
-    
 
 @server.route('/add_token/<int:user_id>/<int:val>')
 def add_token(user_id, val):
