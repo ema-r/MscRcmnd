@@ -1,3 +1,4 @@
 flask
-pyspark
-sqlalchemy
+pandas
+numpy
+sklearn
