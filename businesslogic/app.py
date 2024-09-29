@@ -49,7 +49,7 @@ class Review(Base):
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     userid = sqlalchemy.Column(sqlalchemy.Integer)
     songid = sqlalchemy.Column(sqlalchemy.Integer)
-    rating = sqlalchemy.Column(sqlalchemy.float)
+    rating = sqlalchemy.Column(sqlalchemy.Float)
 
 # Create a SQLAlchemy session
 Session = sqlalchemy.orm.sessionmaker()
