@@ -56,14 +56,6 @@ services:
     networks:
       - internalnet
 
-  mlengine:
-    build: ./mlengine
-    restart: always
-    ports:
-      - 15005:5000
-    networks:
-      - internalnet
-
 volumes:
   db-data: 
 
