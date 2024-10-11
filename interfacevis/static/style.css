@@ -69,3 +69,15 @@
 }
 
 
+/* play button for spotify previews */
+.play-icon, .pause-icon {
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+    transition: transform 0.2s;
+}
+
+.play-icon:hover, .pause-icon:hover {
+    transform: scale(1.1);
+}
+

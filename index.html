@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Play Button</title>
+    <style>
+        /* Small play button styling */
+        .play-button {
+            width: 50px;
+            height: 50px;
+            background-color: #4CAF50;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            color: white;
+            font-size: 18px;
+            border: none;
+            outline: none;
+        }
+        .play-button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Play button -->
+    <button class="play-button" id="playBtn">▶</button>
+
+    <!-- Audio element -->
+    <audio id="audioPlayer" src="https://p.scdn.co/mp3-preview/3b629638f341bedd86ad18015a011af4649fddf0?cid=8cbf98df7ac84b1a86633c4da3178f2f"></audio>
+
+    <script>
+        // Get the button and audio element
+        const playBtn = document.getElementById('playBtn');
+        const audioPlayer = document.getElementById('audioPlayer');
+        let isPlaying = false;
+
+        // Function to toggle play/pause
+        playBtn.addEventListener('click', function() {
+            if (!isPlaying) {
+                audioPlayer.play();
+                playBtn.innerText = '⏸'; // Change to pause icon
+            } else {
+                audioPlayer.pause();
+                playBtn.innerText = '▶'; // Change to play icon
+            }
+            isPlaying = !isPlaying;
+        });
+
+        // When the audio ends, reset the button to play
+        audioPlayer.addEventListener('ended', function() {
+            playBtn.innerText = '▶';
+            isPlaying = false;
+        });
+    </script>
+
+</body>
+</html>

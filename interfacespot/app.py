@@ -31,13 +31,23 @@ def get_link(song_id):
 def comp_search(ret):
     artist_name = []
     track_name = []
-    links = []
+    preview = []
+    link = []
 
     for i, t in enumerate(ret['tracks']['items']):
         artist_name.append(t['artists'][0]['name'])
         track_name.append(t['name'])
+        preview.append(t['preview_url'])
+        link.append(t['external_urls']['spotify'])
     
-    result_dict = {k: v for k, v in zip(artist_name, track_name)}
+    result_dict = {
+        k: {
+            'track': v,
+            'preview': track_preview,
+            'url': track_url
+        } for k, v, track_preview, track_url in zip(artist_name, track_name, preview, link)
+}
+
     print(result_dict, flush=True)
     
     return result_dict
