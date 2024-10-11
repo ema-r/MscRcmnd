@@ -31,6 +31,7 @@ def get_link(song_id):
 def comp_search(ret):
     artist_name = []
     track_name = []
+    links = []
 
     for i, t in enumerate(ret['tracks']['items']):
         artist_name.append(t['artists'][0]['name'])

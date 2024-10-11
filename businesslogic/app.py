@@ -130,9 +130,9 @@ def login():
             return jsonify({'error': 'User does not exist'}), 404
         
         if (userdata.check_password(pword)):
-            return jsonify({'result': 'successfully logged in', 'user_id': uid}), 200
+            return jsonify({'result': 'Successfully logged in', 'user_id': uid}), 200
         
-        else: return jsonify({'error': 'wrong username or password'}), 409
+        else: return jsonify({'error': 'Wrong username or password'}), 409
 
     else:
         return jsonify({'error': 'Method not allowed'}), 405
@@ -164,6 +164,14 @@ def add_token(user_id, val):
     if(add_token_to_user(user_id, val)):
         return jsonify({'success': f'added {val} tokens'}), 200
     else: return jsonify({'error': 'Cannot add tokens'}), 409
+
+
+@server.route('/remove_token/<int:user_id>/')
+def remove_token(user_id):
+    if(remove_token_from_user(user_id)):
+        return jsonify({'success': 'removed one token from user'}), 200
+    else: return jsonify({'error': 'You need at least one token'}), 409
+
 
 
 
@@ -219,12 +227,28 @@ def delete_user(user_id):
 
 def add_token_to_user(user_id, val):
     try:
-        user=session.query(User).filter_by(id=user_id).update({User.availabletokens: User.availabletokens + val})
+        session.query(User).filter_by(id=user_id).update({User.availabletokens: User.availabletokens + val})
         session.commit()
         return True
     except:
         session.rollback()
         return False
+    
+
+def remove_token_from_user(user_id):
+        try:
+            print("user_id=", user_id)
+            tok=session.execute(select(User.availabletokens).where(User.id==user_id)).first()[0]
+            print(tok)
+            if(tok>0):
+                session.query(User).filter_by(id=user_id).update({User.availabletokens: User.availabletokens - 1})
+                session.commit()
+                return True
+            else: raise ValueError()
+        except:
+            session.rollback()
+            return False
+        
 
         
 

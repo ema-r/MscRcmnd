@@ -143,8 +143,19 @@ def get_rec():
 
             results = retr_link(song_title)
             print(results, flush=True)
+
+            # if the song exists, try to remove one token
             if results:
-                return render_template('get_rec.html', results = results)
+                ret = requests.get(bl_url+'remove_token/'+str(session['user_id']))
+
+                # if the user has at least one token
+                if ret.status_code == 200:
+                    return render_template('get_rec.html', results = results)
+                #user has no tokens
+                else:
+                    flash(error_handler(ret.status_code, ret.json()), 'danger')
+                    return render_template('index.html', active_page='index')
+
             else: 
                 flash("error", "danger")
                 return render_template('get_rec.html', results = None)
