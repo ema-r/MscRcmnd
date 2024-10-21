@@ -9,47 +9,68 @@ from sklearn.pipeline import Pipeline
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
 from sklearn.metrics import euclidean_distances
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction.text import CountVectorizer
 from scipy.spatial.distance import cdist
+
+# Data to use
+song_data_cols = ['valence', 'acousticness', 'danceability', 'energy',
+                 'instrumentalness', 'speechiness', 'liveness','tempo', 'key']
+
+metasong_data_cols = ['name', 'year', 'artists']
 
 # start server
 app = Flask(__name__)
 
-# Columns to use
-columnIndexes = ['valence', 'acousticness', 'danceability', 'energy',
-                 'instrumentalness', 'speechiness', 'liveness','tempo', 'key']
-
 # needs query on user id, and reccomendations from the user. We need to add a music id table
 @app.route('/get_reccomandation/<str:song_title>&<str:song_artist>')
 def get_rec(song_title, song_artist):
+    song_data = pandas.read_csv("./data.csv")
+    song_data.head()
+    song_data.info() # Prints pretty info table
     
-    data = pandas.read_csv("./data.csv")
+    # song_data cleaning
+    song_data.isnull().sum()
+    song_data.dropna(inplace = True)
+    #song_data = song_data.drop(['artists', 'id', 'popularity', 'name', 'release_date'], axis = 1)
     
-    metadataCols = ['name', 'year', 'artists']
+    # drop duplicate songs
+    song_data = song_data.sort_values(by=['popularity'], ascending=False)
+    song_data.drop_duplicates(subset=['name'], keep='first', inplace=True)
     
-    song_data = get_song_data_from_csv(song_title, song_artist, data)
+    # Actual calculation
+    song_vectorizer = CountVectorizer()
+    song_vectorizer.fit(song_data['genres'])
 
-    songVector   = get_song_vector(song_data) 
+    recommend_song(song_title, song_data, song_vectorizer)
 
-    scaler = song_clustering_pipeline.steps[0][1]
-    scaled_data = scaler.transform(data[columnIndexes])
-    scaled_song_center = scaler.transform(songVector.reshape(1, -1))
-    distances = cdist(scaled_song_center, scaled_data, 'cosine')
-    index = list(np.argsort(distances)[:, :n_songs][0])
+    return 200
 
-    rec_song = data.iloc[index]
+def get_similiarities(song_name, music_data, vectorizer):
+    # Get input song vector
+    text_data_array = vectorizer.transform(music_data[music_data['name'] == song_name]['genres']).toarray()
+    num_data_array = music_data[music_data['name']==song_name].select_dtypes(include=numpy.number).to_numpy()
 
-    return jsonify({'message': rec_song[columnIndexes].to_dict(orient='records')}), 200
+    # Cycle through songs to calc similiarities
+    similiarities = []
+    for idx, row in music_data.iterrows():
+        song2_name = row['name']
 
-def get_song_data_from_csv(song_name, song_artist, csv_data):
-    try:
-        song_data = csv_data[(csv_data['name'] == song_name)] & csv_data[(csv_data['artists'] == song_artist)]
-        return song_data
+        text_data_array2 = vectorizer.transform(music_data[music_data['name'] == song2_name]['genres']).toarray()
+        num_data_array2  = music_data[music_data['name']==song2_name].select_dtypes(include=numpy.number).to_numpy()
 
-    except IndexError:
-        return jsonify("error")
+        text_sim = cosine_similarity(text_data_array, text_data_array2)[0][0]
+        num_sim  = cosine_similarity(num_data_array, num_data_array2)[0][0]
+        similiarities.append(text_sim + num_sim)
+    return similiarities
 
-def get_song_vector(song_data):
-    return song_vector = song_data[columnIndexes].values
+def recommend_song(song_name, music_data, vectorizer):
+    music_data['similiarity_factor'] = get_similiarities(song_name, music_data, vectorizer)
+    music_data.sort_values(by=['similiarity_factor', 'popularity'],
+                           ascending = [False, False],
+                           inplace = True)
+
+    return music_data[['name', 'artists']][2:7]
 
 if __name__ == '__main__':
     app.run()
