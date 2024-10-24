@@ -13,18 +13,16 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import CountVectorizer
 from scipy.spatial.distance import cdist
 
-# Data to use
-song_data_cols = ['valence', 'acousticness', 'danceability', 'energy',
-                 'instrumentalness', 'speechiness', 'liveness','tempo', 'key']
-
-metasong_data_cols = ['name', 'year', 'artists']
-
 # start server
 app = Flask(__name__)
+app.config["DEBUG"] = True
 
 # needs query on user id, and reccomendations from the user. We need to add a music id table
-@app.route('/get_reccomandation/<str:song_title>&<str:song_artist>')
-def get_rec(song_title, song_artist):
+@app.route('/get_reccomandation/')
+def get_rec():
+    song_title = request.args.get('song_title', None)
+    song_artist = request.args.get('song_artist', None)
+
     song_data = pandas.read_csv("./data.csv")
     song_data.head()
     song_data.info() # Prints pretty info table
@@ -45,6 +43,12 @@ def get_rec(song_title, song_artist):
     recommend_song(song_title, song_data, song_vectorizer)
 
     return 200
+
+# Data to use
+song_data_cols = ['valence', 'acousticness', 'danceability', 'energy',
+                 'instrumentalness', 'speechiness', 'liveness','tempo', 'key']
+
+metasong_data_cols = ['name', 'year', 'artists']
 
 def get_similiarities(song_name, music_data, vectorizer):
     # Get input song vector

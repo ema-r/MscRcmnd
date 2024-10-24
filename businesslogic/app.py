@@ -7,6 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import select, update
 
+ml_url="http://mscrcmnd-mlengine-1:5000/"
 
 engine = sqlalchemy.create_engine("mariadb+mariadbconnector://test_user:test@db:3306/test_database")
 Base = declarative_base()
@@ -48,7 +49,7 @@ class Review(Base):
     __tablename__ = 'Review'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     userid = sqlalchemy.Column(sqlalchemy.Integer)
-    songid = sqlalchemy.Column(sqlalchemy.Integer)
+    songid = sqlalchemy.Column(sqlalchemy.Integer)      # Actually recommandation id
     rating = sqlalchemy.Column(sqlalchemy.Float)
 
 # Create a SQLAlchemy session
@@ -165,10 +166,21 @@ def add_token(user_id, val):
         return jsonify({'success': f'added {val} tokens'}), 200
     else: return jsonify({'error': 'Cannot add tokens'}), 409
 
+@server.route('/get_recommandation/<int:user_id>')
+def get_rec(user_id):
+    print('lol')
 
+@server.route('/update_review/<int:user_id>/<int:reccomandation_id',
+              methods = ['POST'])
+def update_rev(user_id, reccomandation_id):
+    if request.method == 'POST':
+        rating = request.json.get("rating")
 
-
-
+        # Check if a review with this combination of ids exists
+        if (does_review_exist):
+            return jsonify
+    else:
+        return jsonify({'error': 'Method not allowed'}), 405
 
 # Utility functions
 
@@ -188,6 +200,14 @@ def does_email_exists(email):
     user = session.execute(
             select(User.email).where(User.email==email)).first()
     if user is None:
+        return False
+    else:
+        return True
+
+def does_review_exist(user_id, reccomandation_id):
+    review = session.execute(
+            select(Review.id).where(Review.userid == user_id and Review.songid == reccomandation_id)).first()
+    if review is None:
         return False
     else:
         return True
