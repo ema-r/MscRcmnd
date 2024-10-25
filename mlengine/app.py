@@ -20,8 +20,8 @@ app.config["DEBUG"] = True
 # needs query on user id, and reccomendations from the user. We need to add a music id table
 @app.route('/get_reccomandation/')
 def get_rec():
-    song_title = request.args.get('song_title', None)
-    song_artist = request.args.get('song_artist', None)
+    song_title = request.json.get('song_title', None)
+    song_artist = request.json.get('song_artist', None)
 
     song_data = pandas.read_csv("./data.csv")
     song_data.head()
@@ -40,9 +40,9 @@ def get_rec():
     song_vectorizer = CountVectorizer()
     song_vectorizer.fit(song_data['genres'])
 
-    recommend_song(song_title, song_data, song_vectorizer)
+    return_data = recommend_song(song_title, song_data, song_vectorizer)
 
-    return 200
+    return jsonify({"songs":return_data}), 200
 
 # Data to use
 song_data_cols = ['valence', 'acousticness', 'danceability', 'energy',
@@ -74,7 +74,8 @@ def recommend_song(song_name, music_data, vectorizer):
                            ascending = [False, False],
                            inplace = True)
 
-    return music_data[['name', 'artists']][2:7]
+    #return music_data[['name', 'artists']][2:7]
+    return music_data[['name', 'artists']][2]
 
 if __name__ == '__main__':
     app.run()

@@ -1,13 +1,18 @@
 import json
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, jsonify, request
+import requests
 
 import sqlalchemy
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import select, update
 
+# mlengine container base url
 ml_url="http://mscrcmnd-mlengine-1:5000/"
+
+# Spotify container base url
+sp_url="http://mscrcmnd-interfacespot-1:5000/"
 
 engine = sqlalchemy.create_engine("mariadb+mariadbconnector://test_user:test@db:3306/test_database")
 Base = declarative_base()
@@ -32,24 +37,18 @@ class User(Base):
             'email': self.email,
             'tokens': self.availabletokens}
 
-class Song(Base):
-    __tablename__ = 'Songs'
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    artist   = sqlalchemy.Column(sqlalchemy.String(length=32))
-    songname = sqlalchemy.Column(sqlalchemy.String(length=32))
-    spotlink = sqlalchemy.Column(sqlalchemy.String(length=32))
-
 class Reccomandation(Base):
     __tablename__ = 'Reccomandations'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     userid = sqlalchemy.Column(sqlalchemy.Integer)
-    songid = sqlalchemy.Column(sqlalchemy.Integer)
+    songname   = sqlalchemy.Column(sqlalchemy.String(length=30))
+    artistname = sqlalchemy.Column(sqlalchemy.String(length=30))
 
 class Review(Base):
     __tablename__ = 'Review'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     userid = sqlalchemy.Column(sqlalchemy.Integer)
-    songid = sqlalchemy.Column(sqlalchemy.Integer)      # Actually recommandation id
+    songid = sqlalchemy.Column(sqlalchemy.Integer)      # Used as recommandation id
     rating = sqlalchemy.Column(sqlalchemy.Float)
 
 # Create a SQLAlchemy session
@@ -166,19 +165,63 @@ def add_token(user_id, val):
         return jsonify({'success': f'added {val} tokens'}), 200
     else: return jsonify({'error': 'Cannot add tokens'}), 409
 
-@server.route('/get_recommandation/<int:user_id>')
+@server.route('/get_new_recommandation/<int:user_id>',
+              methods = ['POST'])
 def get_rec(user_id):
-    print('lol')
+    if request.method == 'POST': 
+        if (get_token_count_for_user(user_id) > 0):
+            song_title  = request.json.get('song_title', None)
+            song_artist = request.json.get('song_artist', None)
+            data = {"song_title":song_title, "song_artist":song_artist}
+            ret=requests.post(ml_url+"get_reccomandation", json=data)
+
+            if ret.status_code == 200:
+                recommendedsongname   = ret.json().get('songs').get('name')
+                recommendedsongartist = ret.json().get('songs').get('artists')
+                new_reccomandation = Reccomandation(userid=user_id, songname = recommendedsongname,
+                                                    artistname = recommendedsongartist)
+    
+                try:
+                    session.add(new_reccomandation)
+                    session.commit()
+                except(SQLAlchemyError) as e:
+                    error = str(e.__dict__['orig'])
+                    print(error)
+                    session.rollback()
+                    return jsonify({'error': 'cannot connect to database'}), 503
+
+                return jsonify({'message': 'recommendation added succesfully'}), 200
+        else:
+            return jsonify({'error': 'no tokens'}), 401
+    else:
+        return jsonify({'error': 'Method not allowed'}), 405
 
 @server.route('/update_review/<int:user_id>/<int:reccomandation_id',
               methods = ['POST'])
 def update_rev(user_id, reccomandation_id):
     if request.method == 'POST':
-        rating = request.json.get("rating")
+        new_rating = request.json.get("rating")
 
         # Check if a review with this combination of ids exists
-        if (does_review_exist):
-            return jsonify
+        if (does_review_exist and (new_rating == -1.0 or new_rating == 1.0)):
+            return jsonify({'error': 'Not allowed to modify review'}), 403
+        else:
+            new_review = Review(userid=user_id, songid=reccomandation_id,
+                                rating=new_rating)
+
+            # Saving it in the db
+            try:
+                session.add(new_review)
+                session.commit()
+            except(SQLAlchemyError) as e:
+                error = str(e.__dict__['orig'])
+                print(error)
+                session.rollback()
+                return jsonify({'error': "Cannot connect to database, try again later"}), 503
+
+            add_token_to_user(user_id, 1)
+
+            return jsonify({'message': 'User added successfully'}), 200
     else:
         return jsonify({'error': 'Method not allowed'}), 405
 
@@ -246,8 +289,24 @@ def add_token_to_user(user_id, val):
         session.rollback()
         return False
 
-        
+def get_token_count_for_user(user_id):
+    token = session.execute(
+            select(User.availabletokens).where(User.userid == user_id)
+            ).first()
+    if token is None:
+        return 0
+    else:
+        return token[0]
 
+def retr_link(song):
+    data = {'title': song}
+    data = json.dumps(data)
+    headers = {'Content-Type': 'application/json'}
+    ret=requests.post(sp_url+"spotify_search", data=data, headers=headers)
+    if(ret.status_code==200):
+        return ret.json()
+    else:
+        return jsonify({'failure':'failure'})
 
 # Server initialization
 @server.route('/reset')
