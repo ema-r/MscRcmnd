@@ -24,11 +24,92 @@
         <div class="col-md-6">
             <h2>Search Results</h2>
             <ul class="list-group">
-                {% for artist_name, track_name in results.items() %}
-                    <li class="list-group-item">{{ artist_name }} - {{ track_name }}</li>
+                {% for artist_name, details in results.items() %}
+                    <li class="list-group-item">
+                        <a href="{{ details.url }}" target="_blank"> {{ artist_name }} - {{ details.track }}</a> 
+                        {% if details.preview is not none %}
+                            <img class="play-icon" src="{{ url_for('static', filename='play.png') }}" alt="Play">
+                            <audio class="audioPlayer" src="{{ details.preview }}"></audio> 
+                           <!-- <button class="btn btn-primary btn-sm ms-2" onclick="handleButtonClick('{{ artist_name }}')">Action</button> -->
+                           <form action="/recommendations" method="POST" class="d-inline">
+                            <input type="hidden" name="artist_name" value="{{ artist_name }}">
+                            <input type="hidden" name="track_title" value="{{ details.track }}">
+                            <button type="submit" class="btn btn-primary btn-sm ms-2">Get Recommendations</button>
+                        </form>
+                        {% endif %}
+                    </li>
                 {% endfor %}
             </ul>
         </div>
     </div>
+ <!--   <script>
+        function handleButtonClick(artistName) {
+            // Add your button click handling logic here
+            alert("Button clicked for " + artistName);
+        }
+    </script> -->
+    <script>
+        class Audio{
+            constructor(index, audioPlayer, playIcon){
+                this.index = index;
+                this.isPlaying = false;
+                this.audioPlayer = audioPlayer;
+                this.playIcon = playIcon;
+            }
+
+            play(){
+                this.audioPlayer.play();
+                this.playIcon.src = "{{ url_for('static', filename='pause.png') }}"; // Change to pause icon
+                this.isPlaying = true;
+            }
+
+            pause(){
+                this.audioPlayer.pause();
+                this.playIcon.src = "{{ url_for('static', filename='play.png') }}"; // Change to play icon
+                this.isPlaying = false;
+            }
+
+            to_string(){
+                console.log("Index:", this.index, "isPlaying?:", this.isPlaying);
+            }
+        }
+        // Get all play icons and audio elements
+        const playIcons = document.querySelectorAll('.play-icon');
+        const audioPlayers = document.querySelectorAll('.audioPlayer');
+        const audios = [];
+
+        let currentlyPlayingIndex = null; // Track the currently playing audio
+
+        playIcons.forEach((playIcon, index) => {
+            const audio = new Audio(index, audioPlayers[index], playIcon);
+            audios.push(audio);
+
+            playIcon.addEventListener('click', function() {
+                console.log("Premuto tasto numero:", index);
+                console.log("Al momento sta suonando:", currentlyPlayingIndex);
+
+                // If there's a currently playing track that isn't the one clicked
+                if (currentlyPlayingIndex !== null && currentlyPlayingIndex !== index) {
+                    audio.to_string();
+                    console.log("CHI STA SUONANDO?");
+                    audios[currentlyPlayingIndex].to_string();
+                    audios[currentlyPlayingIndex].pause(); // Pause the currently playing audio
+                }
+
+                if (audio.isPlaying==false) {
+                    audio.play();
+                    currentlyPlayingIndex = index; // Update the currently playing index
+                } else {
+                    audio.pause();
+                }
+            });
+
+            // When the audio ends, reset the icon to play
+            audio.audioPlayer.addEventListener('ended', function() {
+                audio.pause()
+                currentlyPlayingIndex = null; // Reset the currently playing index
+            });
+        });
+    </script>
 {% endif %}
 {% endblock %}
