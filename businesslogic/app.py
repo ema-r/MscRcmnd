@@ -313,7 +313,7 @@ def remove_token_from_user(user_id):
 
 def get_token_count_for_user(user_id):
     token = session.execute(
-            select(User.availabletokens).where(User.userid == user_id)
+            select(User.availabletokens).where(User.id == user_id)
             ).first()
     if token is None:
         return 0
