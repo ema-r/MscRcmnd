@@ -36,16 +36,17 @@ def contact():
         email = request.form['email']
         message = request.form['message']
 
-        # For now just prints the message 
-        print(f"Name: {name}")
-        print(f"Email: {email}")
-        print(f"Message: {message}")
+        # Sending data to businesslogic
+        data={"name": name, "email": email, "message": message}
+        ret=requests.post(bl_url+"addmessages", json=data)
 
-        # Flash a thank you message
-        flash('Thank you for contacting us!', 'success')
 
-        # Redirect to the homepage
-        return render_template('index.html', active_page='index')
+        if ret.status_code == 200:
+            flash("Thank you for contacting us!", "success")
+            return render_template('index.html', active_page='index')
+        else:
+            flash("Failure to contact us", 'danger')
+            return render_template('index.html', active_page='index')
 
     # If it's a GET request, render the contact form
     else:
