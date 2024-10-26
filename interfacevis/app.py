@@ -176,6 +176,12 @@ def recommendations():
                 data = {"song_title":song_title, "song_artist":song_artist}
                 ret = requests.post(bl_url+"get_new_recommendation/"+str(session['user_id']),json=data)
 
+                if ret.status_code == 200:
+                    return render_template('get_rec.html', results = None)
+                else:
+                    flash("error", "danger")
+                    return render_template('get_rec.html', results = None)
+
 
 
 
