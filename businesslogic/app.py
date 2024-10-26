@@ -165,7 +165,7 @@ def add_token(user_id, val):
         return jsonify({'success': f'added {val} tokens'}), 200
     else: return jsonify({'error': 'Cannot add tokens'}), 409
 
-@server.route('/get_new_recommandation/<int:user_id>',
+@server.route('/get_new_recommendation/<int:user_id>',
               methods = ['POST'])
 def get_rec(user_id):
     if request.method == 'POST': 
@@ -196,7 +196,7 @@ def get_rec(user_id):
     else:
         return jsonify({'error': 'Method not allowed'}), 405
 
-@server.route('/update_review/<int:user_id>/<int:reccomandation_id',
+@server.route('/update_review/<int:user_id>/<int:reccomandation_id>',
               methods = ['POST'])
 def update_rev(user_id, reccomandation_id):
     if request.method == 'POST':
@@ -343,4 +343,3 @@ def dbsetup():
 
 if __name__ == '__main__':
     server.run()
-
