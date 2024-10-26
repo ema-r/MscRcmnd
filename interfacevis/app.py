@@ -172,10 +172,16 @@ def get_rec():
 def recommendations():
         if request.method == 'POST':
             if 'username' in session:
-                song_title = request.json.get('track_title', None)
-                song_artist = request.json.get('artist_name', None)
+                song_title = request.form.get('track_title', None)
+                song_artist = request.form.get('artist_name', None)
                 data = {"song_title":song_title, "song_artist":song_artist}
                 ret = requests.post(bl_url+"get_new_recommendation/"+str(session['user_id']),json=data)
+
+                if ret.status_code == 200:
+                    return render_template('get_rec.html', results = None)
+                else:
+                    flash("error", "danger")
+                    return render_template('get_rec.html', results = None)
 
 
 
