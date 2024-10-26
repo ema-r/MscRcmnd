@@ -37,18 +37,6 @@ class User(Base):
             'email': self.email,
             'tokens': self.availabletokens}
 
-<<<<<<< HEAD
-
-
-class Song(Base):
-    __tablename__ = 'Songs'
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    artist   = sqlalchemy.Column(sqlalchemy.String(length=32))
-    songname = sqlalchemy.Column(sqlalchemy.String(length=32))
-    spotlink = sqlalchemy.Column(sqlalchemy.String(length=32))
-
-=======
->>>>>>> 556a829fb3d8818ef0c6a82868877d9f4a4477c5
 class Reccomandation(Base):
     __tablename__ = 'Reccomandations'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
@@ -62,6 +50,22 @@ class Review(Base):
     userid = sqlalchemy.Column(sqlalchemy.Integer)
     songid = sqlalchemy.Column(sqlalchemy.Integer)      # Used as recommandation id
     rating = sqlalchemy.Column(sqlalchemy.Float)
+
+class Message(Base):
+    __tablename__ = 'Messages'
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    name = sqlalchemy.Column(sqlalchemy.String(length=100))
+    email = sqlalchemy.Column(sqlalchemy.String(length=100))
+    message = sqlalchemy.Column(sqlalchemy.Text)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'email': self.email,
+            'message': self.message
+        }
+
 
 # Create a SQLAlchemy session
 Session = sqlalchemy.orm.sessionmaker()
@@ -243,6 +247,33 @@ def remove_token(user_id):
         return jsonify({'success': 'removed one token from user'}), 200
     else: return jsonify({'error': 'You need at least one token'}), 409
 
+
+@server.route('/print_messages', methods=['GET'])
+def print_all_messages():
+    print_messages(session)  # Passa la sessione alla funzione
+    return jsonify({'message': 'Messages printed to console'}), 200
+
+@server.route('addmessages',  methods=['POST'])
+def contactus():
+    new_name = request.json.get("username", None)
+    new_email = request.json.get('email', None)
+    new_message = request.json.get('message', None)
+                
+    new_messagedb = Message(name=new_name, email=new_email,
+            message = new_message)
+                    
+    # Saving it in the db
+    try:
+        session.add(new_messagedb)
+        session.commit()
+    except(SQLAlchemyError) as e:
+        error = str(e.__dict__['orig'])
+        print(error)
+        session.rollback()
+        return jsonify({'error': "Cannot connect to database, try again later"}), 503
+
+    return jsonify({'message': 'Message added successfully'}), 200   
+
 # Utility functions
 
 # Check if user exist before signup
@@ -321,37 +352,7 @@ def remove_token_from_user(user_id):
         except:
             session.rollback()
             return False
-        
 
-<<<<<<< HEAD
-        
-import json
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask import Flask, jsonify, request
-import sqlalchemy
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import select, update
-from sqlalchemy.orm import sessionmaker
-
-engine = sqlalchemy.create_engine("mariadb+mariadbconnector://test_user:test@db:3306/test_database")
-Base = declarative_base()
-
-
-class Message(Base):
-    __tablename__ = 'Messages'
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    name = sqlalchemy.Column(sqlalchemy.String(length=100))
-    email = sqlalchemy.Column(sqlalchemy.String(length=100))
-    message = sqlalchemy.Column(sqlalchemy.Text)
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'email': self.email,
-            'message': self.message
-        }
 
 
 # Funzione per stampare i messaggi
@@ -367,36 +368,8 @@ def print_messages(session):
 
     except SQLAlchemyError as e:
         print(f"Error retrieving messages: {str(e)}")
+     
 
-@server.route('/print_messages', methods=['GET'])
-def print_all_messages():
-    print_messages(session)  # Passa la sessione alla funzione
-    return jsonify({'message': 'Messages printed to console'}), 200
-
-
-
-@server.route('addmessages',  methods=['POST'])
-def contactus():
-    new_name = request.json.get("username", None)
-    new_email = request.json.get('email', None)
-    new_message = request.json.get('message', None)
-                
-    new_messagedb = Message(name=new_name, email=new_email,
-            message = new_message)
-                    
-    # Saving it in the db
-    try:
-        session.add(new_messagedb)
-        session.commit()
-    except(SQLAlchemyError) as e:
-        error = str(e.__dict__['orig'])
-        print(error)
-        session.rollback()
-        return jsonify({'error': "Cannot connect to database, try again later"}), 503
-
-    return jsonify({'message': 'Message added successfully'}), 200        
-
-=======
 def get_token_count_for_user(user_id):
     token = session.execute(
             select(User.availabletokens).where(User.id == user_id)
@@ -405,7 +378,6 @@ def get_token_count_for_user(user_id):
         return 0
     else:
         return token[0]
->>>>>>> 556a829fb3d8818ef0c6a82868877d9f4a4477c5
 
 def retr_link(song):
     data = {'title': song}
