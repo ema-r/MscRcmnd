@@ -253,7 +253,7 @@ def print_all_messages():
     print_messages(session)  # Passa la sessione alla funzione
     return jsonify({'message': 'Messages printed to console'}), 200
 
-@server.route('addmessages',  methods=['POST'])
+@server.route('/addmessages',  methods=['POST'])
 def contactus():
     new_name = request.json.get("username", None)
     new_email = request.json.get('email', None)
