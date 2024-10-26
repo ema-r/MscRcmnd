@@ -18,7 +18,7 @@ app = Flask(__name__)
 app.config["DEBUG"] = True
 
 # needs query on user id, and reccomendations from the user. We need to add a music id table
-@app.route('/get_reccomandation/')
+@app.route('/get_reccomandation', methods = ['POST'])
 def get_rec():
     song_title = request.json.get('song_title', None)
     song_artist = request.json.get('song_artist', None)

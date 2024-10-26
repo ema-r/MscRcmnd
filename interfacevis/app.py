@@ -18,7 +18,6 @@ bl_url="http://mscrcmnd-businesslogic-1:5000/"
 # Spotify container base url
 sp_url="http://mscrcmnd-interfacespot-1:5000/"
 
-
 @app.route('/')
 def homepage():
     return render_template('index.html', active_page='index')

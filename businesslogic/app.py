@@ -207,6 +207,8 @@ def get_rec(user_id):
                     return jsonify({'error': 'cannot connect to database'}), 503
 
                 return jsonify({'message': 'recommendation added succesfully'}), 200
+            else:
+                return jsonify({'error': 'cannot connect to mlengine'}), 503
         else:
             return jsonify({'error': 'no tokens'}), 401
     else:
