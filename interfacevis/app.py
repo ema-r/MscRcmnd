@@ -167,6 +167,16 @@ def get_rec():
         flash("You must be logged in", "danger")
         return render_template("index.html", active_page="index")
 
+@app.route('/recommendations', methods=['POST'])
+def recommendations():
+        if request.method == 'POST':
+            if 'username' in session:
+                song_title = request.json.get('track_title', None)
+                song_artist = request.json.get('artist_name', None)
+                data = {"song_title":song_title, "song_artist":song_artist}
+                ret = requests.post(bl_url+"get_new_recommendation/"+str(session['user_id']),json=data)
+
+
 
 
 @app.route('/delete', methods=['GET'])
