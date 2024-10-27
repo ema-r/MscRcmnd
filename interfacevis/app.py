@@ -144,20 +144,12 @@ def get_rec():
             results = retr_link(song_title)
             print(results, flush=True)
 
-            # if the song exists, try to remove one token
+            # if the song exists
             if results:
-                ret = requests.get(bl_url+'remove_token/'+str(session['user_id']))
-
-                # if the user has at least one token
-                if ret.status_code == 200:
-                    return render_template('get_rec.html', results = results)
-                #user has no tokens
-                else:
-                    flash(error_handler(ret.status_code, ret.json()), 'danger')
-                    return render_template('index.html', active_page='index')
+                return render_template('get_rec.html', results = results)
 
             else: 
-                flash("error", "danger")
+                flash("Song not found!", "danger")
                 return render_template('get_rec.html', results = None)
         
         elif request.method == "GET":
@@ -171,16 +163,25 @@ def get_rec():
 def recommendations():
         if request.method == 'POST':
             if 'username' in session:
-                song_title = request.form.get('track_title', None)
-                song_artist = request.form.get('artist_name', None)
-                data = {"song_title":song_title, "song_artist":song_artist}
-                ret = requests.post(bl_url+"get_new_recommendation/"+str(session['user_id']),json=data)
+                # token substraction 
+                print("\nTOKEN REMOVED!!!!\n")
+                ret = requests.get(bl_url+'remove_token/'+str(session['user_id']))
 
-                if ret.status_code == 200:
-                    return render_template('get_rec.html', results = None)
+                if(ret.status_code == 200):
+                    song_title = request.form.get('track_title', None)
+                    song_artist = request.form.get('artist_name', None)
+                    data = {"song_title":song_title, "song_artist":song_artist}
+                    ret = requests.post(bl_url+"get_new_recommendation/"+str(session['user_id']),json=data)
+
+                    if ret.status_code == 200:
+                        return render_template('get_rec.html', results = None)
+                    else:
+                        flash("error", "danger")
+                        return render_template('get_rec.html', results = None)
+                    
                 else:
-                    flash("error", "danger")
-                    return render_template('get_rec.html', results = None)
+                    flash(error_handler(ret.status_code, ret.json()), 'danger')
+                    return render_template('index.html', active_page='index')
 
 
 
