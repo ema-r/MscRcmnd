@@ -257,7 +257,7 @@ def print_all_messages():
 
 @server.route('/addmessages',  methods=['POST'])
 def contactus():
-    new_name = request.json.get("username", None)
+    new_name = request.json.get("name", None)
     new_email = request.json.get('email', None)
     new_message = request.json.get('message', None)
                 
