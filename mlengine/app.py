@@ -47,7 +47,7 @@ def get_rec():
 
     print("returned data: ", return_data)
 
-    return jsonify({"songs":return_data}), 200
+    return jsonify({"songs":{"name":return_data[0]}}), 200
 
 # Data to use
 song_data_cols = ['valence', 'acousticness', 'danceability', 'energy',
@@ -57,8 +57,9 @@ metasong_data_cols = ['track_name', 'year', 'artist_name']
 
 def get_similiarities(song_name, music_data, vectorizer):
     # Get input song vector
-    text_data_array = vectorizer.transform(music_data[music_data['track_name'] == song_name]['genre']).toarray()
-    num_data_array = music_data[music_data['track_name']==song_name].select_dtypes(include=numpy.number).to_numpy()
+    print(vectorizer.transform(music_data[music_data['track_name'] == "the chain"]['genre']).toarray())
+    text_data_array = vectorizer.transform(music_data[music_data['track_name'] == 'the chain']['genre']).toarray()
+    num_data_array = music_data[music_data['track_name']=='the chain'].select_dtypes(include=numpy.number).to_numpy()
 
     print(text_data_array)
     print(num_data_array)
@@ -78,12 +79,15 @@ def get_similiarities(song_name, music_data, vectorizer):
 
 def recommend_song(song_name, music_data, vectorizer):
     music_data['similiarity_factor'] = get_similiarities(song_name, music_data, vectorizer)
-    music_data.sort_values(by=['similiarity_factor', 'popularity'],
-                           ascending = [False, False],
+    music_data.sort_values(by=['similiarity_factor'],
+                           ascending = False,
                            inplace = True)
 
     #return music_data[['track_name', 'artist_name']][2:7]
-    return music_data[['track_name', 'artist_name']][2]
+    print("songs: ", music_data['track_name'])
+    print("artist: ", music_data['artist_name'][2:7])
+    print("song_title: ", music_data['track_name'][2:7])
+    return (music_data['track_name'][2], music_data['artist_name'][2])
 
 if __name__ == '__main__':
     app.run()
