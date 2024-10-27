@@ -12,7 +12,7 @@ from sqlalchemy import select, update
 ml_url="http://mscrcmnd-mlengine-1:5000/"
 
 # Spotify container base url
-sp_url="http://mscrcmnd-interfacespo--1:5000/"
+sp_url="http://mscrcmnd-interfacespot-1:5000/"
 
 engine = sqlalchemy.create_engine("mariadb+mariadbconnector://test_user:test@db:3306/test_database")
 Base = declarative_base()
