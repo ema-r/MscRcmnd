@@ -192,8 +192,8 @@ def get_rec(user_id):
             ret=requests.post(ml_url+"get_reccomandation", json=data)
 
             if ret.status_code == 200:
-                recommendedsongname   = ret.json().get('songs').get('name')
-                recommendedsongartist = ret.json().get('songs').get('artists')
+                recommendedsongname   = ret.json().get('name')
+                recommendedsongartist = ret.json().get('artists')
                 new_reccomandation = Reccomandation(userid=user_id, songname = recommendedsongname,
                                                     artistname = recommendedsongartist)
     
