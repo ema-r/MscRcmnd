@@ -171,7 +171,6 @@ def get():
     else:
         print(user.to_dict())
         return jsonify(user.to_dict())
-    
 
 @server.route('/delete/<int:user_id>')
 def delete(user_id):
@@ -232,7 +231,7 @@ def get_past_recs(user_id):
                         )
                     )
             print(reccomendations)
-            return jsonify(reccomendations)
+            return jsonify(reccomendations), 200
     else:
         return jsonify({'error': 'Method not allowed'}), 405
 
@@ -262,6 +261,14 @@ def update_rev(user_id, reccomandation_id):
             add_token_to_user(user_id, 1)
 
             return jsonify({'message': 'User added successfully'}), 200
+    else:
+        return jsonify({'error': 'Method not allowed'}), 405
+
+@server.route('/tokens/<int:user_id>', methods=['GET'])
+def get_token_number(user_id):
+    if request.method == 'GET':
+        token_number = get_token_count_for_user(user_id)
+        return jsonify({'token_count': token_number}), 200
     else:
         return jsonify({'error': 'Method not allowed'}), 405
  
@@ -307,9 +314,9 @@ def checkAPIcreds():
         if (does_user_id_exist(r_userid)):
             apicred = session.execute(select(User.apicred).where(User.id == r_userid)).first() 
             if apicred == r_api_token:
-                return jsonify({'result': "Success"})
+                return jsonify({'result': "Success"}), 200
             else:
-                return jsonify({'result': "Failure"})
+                return jsonify({'result': "Failure"}), 200
         else:
             return jsonify({'error': 'user not found'}), 404
     else:
