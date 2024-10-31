@@ -25,7 +25,7 @@ def get_data():
             if ret.status_code == 200:
                 return ret.json, 200
             else:
-                return jsonify({'error': 'Error recovering reccomandations'}), 405
+                return jsonify({'error': 'Error recovering user_data'}), 405
 
    else:
        return jsonify({'error': 'Method not allowed'}), 405
@@ -57,7 +57,7 @@ def get_tokens():
             if ret.status_code == 200:
                 return ret.json, 200
             else:
-                return jsonify({'error': 'Error recovering reccomandations'}), 405
+                return jsonify({'error': 'Error recovering token count'}), 405
 
    else:
        return jsonify({'error': 'Method not allowed'}), 405
@@ -76,7 +76,7 @@ def get_recco():
             if ret.status_code == 200:
                 return ret.json, 200
             else:
-                return jsonify({'error': 'Error recovering reccomandations'}), 405
+                return jsonify({'error': 'Error recovering reccomandation'}), 405
 
     else:
        return jsonify({'error': 'Method not allowed'}), 405
@@ -99,7 +99,7 @@ def submit_review():
             if ret.status_code == 200:
                 return ret.json, 200
             else:
-                return jsonify({'error': 'Error recovering reccomandations'}), 405
+                return jsonify({'error': 'Error submitting review'}), 405
 
    else:
        return jsonify({'error': 'Method not allowed'}), 405
