@@ -6,7 +6,9 @@ import requests
 import sqlalchemy
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import select, update
+from sqlalchemy import select, update, ForeignKey
+from sqlalchemy.orm import relationship, mapped_column, Mapped
+from typing import List
 
 # mlengine container base url
 ml_url="http://mscrcmnd-mlengine-1:5000/"
@@ -19,11 +21,14 @@ Base = declarative_base()
 
 class User(Base):
     __tablename__ = 'Users'
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, nullable=False)
+    #id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True, nullable=False)
     username = sqlalchemy.Column(sqlalchemy.String(length=30), unique=True)
     email    = sqlalchemy.Column(sqlalchemy.String(length=30))
     password = sqlalchemy.Column(sqlalchemy.Text()) # password hash is bigger than a string
     availabletokens = sqlalchemy.Column(sqlalchemy.Integer)
+
+    recommendations: Mapped[List["Reccomandation"]] = relationship()
 
     def set_password(self, new_password):
         self.password = generate_password_hash(new_password)
@@ -32,17 +37,33 @@ class User(Base):
         return check_password_hash(self.password, psw)
     
     def to_dict(self):
-        return {'id': self.id,
+        a = {'id': self.id,
             'username': self.username,
             'email': self.email,
-            'tokens': self.availabletokens}
+            'tokens': self.availabletokens,
+            'recommendations': []}
+        for elem in self.recommendations:
+            a['recommendations'].append(elem.to_dict())
+        return a
 
 class Reccomandation(Base):
     __tablename__ = 'Reccomandations'
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    userid = sqlalchemy.Column(sqlalchemy.Integer)
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, nullable=False)
     songname   = sqlalchemy.Column(sqlalchemy.String(length=30))
     artistname = sqlalchemy.Column(sqlalchemy.String(length=30))
+
+    userid: Mapped[int] = mapped_column(ForeignKey("Users.id"))
+
+    def to_string(self):
+        return f'Song: {self.songname}, by {self.artistname}'
+    def to_dict(self):
+        return {'songname': self.songname, 'artistname': self.artistname}
+    def __repr__(self):
+        return f'song name: {self.songname}, artist name: {self.artistname}, user id: {self.userid}'
+    
+    def __eq__(self, recc):
+        if(self.artistname == recc.artistname and self.songname == recc.songname and isinstance(recc, Reccomandation)): return True
+        else: return False
 
 class Review(Base):
     __tablename__ = 'Review'
@@ -181,8 +202,7 @@ def add_token(user_id, val):
         return jsonify({'success': f'added {val} tokens'}), 200
     else: return jsonify({'error': 'Cannot add tokens'}), 409
 
-@server.route('/get_new_recommendation/<int:user_id>',
-              methods = ['POST'])
+@server.route('/get_new_recommendation/<int:user_id>', methods = ['POST'])
 def get_rec(user_id):
     if request.method == 'POST': 
         if (get_token_count_for_user(user_id) > 0):
@@ -193,20 +213,25 @@ def get_rec(user_id):
 
             if ret.status_code == 200:
                 recommendedsongname   = ret.json().get('name')
-                recommendedsongartist = ret.json().get('artists')
+                recommendedsongartist = ret.json().get('artist')
+                recommendedsongartist = recommendedsongartist.replace("'", "")
                 new_reccomandation = Reccomandation(userid=user_id, songname = recommendedsongname,
                                                     artistname = recommendedsongartist)
-    
+                
+                if not(check_recc(new_reccomandation)):
+                    add_token_to_user(user_id, 1) # give back the token
+                    return jsonify({'error': 'recommendation already added!'}), 409
                 try:
                     session.add(new_reccomandation)
                     session.commit()
                 except(SQLAlchemyError) as e:
+                    print("ERRORE")
                     error = str(e.__dict__['orig'])
                     print(error)
                     session.rollback()
                     return jsonify({'error': 'cannot connect to database'}), 503
 
-                return jsonify({'message': 'recommendation added succesfully'}), 200
+                return jsonify(new_reccomandation.to_dict()), 200
             else:
                 return jsonify({'error': 'cannot connect to mlengine'}), 503
         else:
@@ -390,6 +415,15 @@ def retr_link(song):
         return ret.json()
     else:
         return jsonify({'failure':'failure'})
+    
+# Check if a recommendation is already present in a given User, to avoid duplicates
+def check_recc(recc):
+    user = session.execute(select(User).where(User.id==recc.userid)).first()[0]
+    print("\n\nRESULT\n\n")
+    print(user.recommendations)
+    for elem in user.recommendations:
+        if(elem==recc): return False
+    return True
 
 # Server initialization
 @server.route('/reset')

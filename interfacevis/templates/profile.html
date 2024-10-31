@@ -5,23 +5,23 @@
 {% block title %}Profile{% endblock %}
 
 {% block content %}
-
 <h1 class="display-4">Welcome, {{ user.username }}</h1>
 
 <div class="container">
     <div class="row mt-4">
+        <!-- Left Column: User Info -->
         <div class="col-md-4">
-            <div class="row">
-                <!-- User Profile Picture -->
+            <!-- User Profile Picture -->
+            <div class="row mb-3">
                 <div class="card">
-                    <div class="card-body justify-content-center align-items-center">
+                    <div class="card-body d-flex justify-content-center align-items-center">
                         <img src="{{ pic }}" class="card-img-top img-fluid profile-picture" alt="User Profile Picture">
                     </div>
                 </div>
             </div>
 
+            <!-- User Information -->
             <div class="row">
-                <!-- User Information -->
                 <div class="card">
                     <div class="card-body text-left">
                         <p class="card-text mb-0"><strong>Username:</strong> {{ user.username }}</p>
@@ -31,9 +31,32 @@
                 </div>
             </div>
         </div>
+
+        <!-- Right Column: Recommendations (Scrollable) -->
         <div class="col-md-8">
-            <h5>Stuff about music recommendations to be implemented</h5>
+            <div class="card recommendations">
+                <div class="card-body">
+                    <h5>Music Recommendations</h5>
+                    <ul class="list-group">
+                        {% for recommendation in user.recommendations %}
+                        <li class="list-group-item">
+                            <strong>{{ recommendation.songname }}</strong> by {{ recommendation.artistname }}
+                        </li>
+                        {% else %}
+                        <li class="list-group-item">No recommendations yet.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- Custom CSS to make recommendations section scrollable -->
+<style>
+    .recommendations {
+        max-height: 70vh; /* Adjust the height as needed */
+        overflow-y: auto; /* Makes the section scrollable */
+    }
+</style>
 {% endblock %}

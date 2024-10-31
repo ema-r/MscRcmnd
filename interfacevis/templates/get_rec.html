@@ -23,7 +23,7 @@
     <div class="row justify-content-center mt-5">
         <div class="col-md-6">
             <div class="input-group mb-3">
-                <h2>Search Results</h2>
+                <h2>{% if not found %}Search{% endif %} Results</h2>
                 <ul class="list-group">
                     {% for artist_name, details in results.items() %}
                         <li class="list-group-item">
@@ -34,6 +34,7 @@
                                     <audio class="audioPlayer" src="{{ details.preview }}"></audio> 
                                 </div>
                             {% endif %}
+                            {% if not found %}
                             <div class="input-group-append">
                                 <!-- <button class="btn btn-primary btn-sm ms-2" onclick="handleButtonClick('{{ artist_name }}')">Action</button> -->
                                 <form action="/recommendations" method="POST" class="d-inline">
@@ -42,6 +43,7 @@
                                     <button type="submit" class="btn btn-primary btn-sm ms-2">Get Recommendations</button>
                                 </form>
                             </div>
+                            {% endif %}
                         </li>
                     {% endfor %}
                 </ul>
