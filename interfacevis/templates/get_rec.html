@@ -20,42 +20,89 @@
 </div>
 
 {% if results %}
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-6">
-            <div class="input-group mb-3">
-                <h2>{% if not found %}Search{% endif %} Results</h2>
-                <ul class="list-group">
-                    {% for artist_name, details in results.items() %}
-                        <li class="list-group-item">
-                            <a href="{{ details.url }}" target="_blank"> {{ artist_name }} - {{ details.track }}</a>
-                            {% if details.preview is not none %}
-                                <div class="input-group-append">
-                                    <img class="play-icon" src="{{ url_for('static', filename='play.png') }}" alt="Play">
-                                    <audio class="audioPlayer" src="{{ details.preview }}"></audio> 
-                                </div>
-                            {% endif %}
-                            {% if not found %}
-                            <div class="input-group-append">
-                                <!-- <button class="btn btn-primary btn-sm ms-2" onclick="handleButtonClick('{{ artist_name }}')">Action</button> -->
-                                <form action="/recommendations" method="POST" class="d-inline">
-                                    <input type="hidden" name="artist_name" value="{{ artist_name }}">
-                                    <input type="hidden" name="track_title" value="{{ details.track }}">
-                                    <button type="submit" class="btn btn-primary btn-sm ms-2">Get Recommendations</button>
-                                </form>
-                            </div>
-                            {% endif %}
-                        </li>
-                    {% endfor %}
-                </ul>
+    <div class="row justify-content-md-center">
+        <div class="col-12 mb-3 mb-lg-5">
+            <div class="overflow-hidden card table-nowrap table-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5>{% if not found %}Search{% endif %} Results</h5>
+                    <a href="#!" class="btn btn-light btn-sm">View All</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead class="small text-uppercase bg-body text-muted">
+                            <tr>
+                                <th>Artist</th>
+                                <th>Song</th>
+                                <th>Spotify link</th>
+                                <th>Preview</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for artist_name, details in results.items() %}
+                            <tr class="align-middle">
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div>
+                                            <div class="h6 mb-0 lh-1">{{ artist_name }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ details.track }}</td>
+                                <td> <span class="d-inline-block align-middle"><a href="{{ details.url }}" target="_blank">Here</a></span></td>
+                                <td><span>
+                                    {% if details.preview is not none %} 
+                                        <img class="play-icon" src="{{ url_for('static', filename='play.png') }}" alt="Play">
+                                        <audio class="audioPlayer" src="{{ details.preview }}"></audio> 
+                                    {% endif %}
+                                </span></td>
+                                <td class="text-end">
+                                    {% if not found %}
+                                        <form action="/recommendations" method="POST" class="d-inline-block align-middle">
+                                            <input type="hidden" name="artist_name" value="{{ artist_name }}">
+                                            <input type="hidden" name="track_title" value="{{ details.track }}">
+                                            <button type="submit" class="btn btn-success">Get Recommendations</button>
+                                        </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
- <!--   <script>
-        function handleButtonClick(artistName) {
-            // Add your button click handling logic here
-            alert("Button clicked for " + artistName);
-        }
-    </script> -->
+
+
+
+
+   <!--     <ul class="list-group">
+            {% for artist_name, details in results.items() %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <a href="{{ details.url }}" target="_blank"> {{ artist_name }} - {{ details.track }}</a>
+                    {% if not found %}
+                        <span class="badge bg-secondary">
+                            <form action="/recommendations" method="POST" class="d-inline">
+                                <input type="hidden" name="artist_name" value="{{ artist_name }}">
+                                <input type="hidden" name="track_title" value="{{ details.track }}">
+                                <button type="submit" class="btn btn-primary btn-sm ms-2">Get Recommendations</button>
+                            </form>
+                        </span>
+                    {% endif %}
+
+                    {% if details.preview is not none %}
+                        <span class="badge bg-secondary">   
+                            <img class="play-icon" src="{{ url_for('static', filename='play.png') }}" alt="Play">
+                            <audio class="audioPlayer" src="{{ details.preview }}"></audio> 
+                        </span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+-->
+
     <script>
         class Audio{
             constructor(index, audioPlayer, playIcon){

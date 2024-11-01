@@ -159,6 +159,8 @@ def get_rec():
         flash("You must be logged in", "danger")
         return render_template("index.html", active_page="index")
 
+
+
 @app.route('/recommendations', methods=['POST'])
 def recommendations():
         if request.method == 'POST':

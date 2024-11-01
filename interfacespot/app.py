@@ -39,6 +39,7 @@ def comp_search(ret):
         track_name.append(t['name'])
         preview.append(t['preview_url'])
         link.append(t['external_urls']['spotify'])
+        # need to get URI
     
     result_dict = {
         k: {
