@@ -84,7 +84,7 @@ def recommend_song(song_name, artist_name, music_data, vectorizer):
 
     print("artist: \n", music_data_result['artists'][2:7])
     print("song_title: \n", music_data_result['name'][2:7])
-    return music_data_result[2:3]
+    return music_data_result[2:5]
 
 if __name__ == '__main__':
     app.run()
