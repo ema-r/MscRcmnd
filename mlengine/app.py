@@ -26,7 +26,7 @@ song_data = songs_data.merge(song_genres, on="artists", how = 'inner')
 song_data.isnull().sum()
 song_data.dropna(inplace = True)
 song_data.drop_duplicates(subset=['name'], keep='first', inplace=True)
-song_data = song_data.sort_values(by=['popularity'], ascending=False).head(10000)
+song_data = song_data.sort_values(by=['popularity'], ascending=False).head(25000)
 song_data = song_data.drop(columns=['release_date', 'mode', 'id', 'year'])
 
 # start server
