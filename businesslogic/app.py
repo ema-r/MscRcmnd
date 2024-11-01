@@ -6,9 +6,12 @@ import requests
 import sqlalchemy
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
+
 from sqlalchemy import select, update, ForeignKey
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 from typing import List
+
+import secrets
 
 # mlengine container base url
 ml_url="http://mscrcmnd-mlengine-1:5000/"
@@ -26,12 +29,16 @@ class User(Base):
     username = sqlalchemy.Column(sqlalchemy.String(length=30), unique=True)
     email    = sqlalchemy.Column(sqlalchemy.String(length=30))
     password = sqlalchemy.Column(sqlalchemy.Text()) # password hash is bigger than a string
+    apicred  = sqlalchemy.Column(sqlalchemy.Text()) # Also hashed
     availabletokens = sqlalchemy.Column(sqlalchemy.Integer)
 
     recommendations: Mapped[List["Reccomandation"]] = relationship()
 
     def set_password(self, new_password):
         self.password = generate_password_hash(new_password)
+
+    def generate_api_credentials(self):
+        self.apicred  = secrets.token_hex(16)
     
     def check_password(self, psw):
         return check_password_hash(self.password, psw)
@@ -135,6 +142,7 @@ def user():
                         availabletokens=new_availabletokens)
         # Set hashed password
         new_user.set_password(new_password)
+        new_user.generate_api_credentials()
 
         # Saving it in the db
         try:
@@ -186,7 +194,6 @@ def get():
     else:
         print(user.to_dict())
         return jsonify(user.to_dict())
-    
 
 @server.route('/delete/<int:user_id>')
 def delete(user_id):
@@ -239,6 +246,22 @@ def get_rec(user_id):
     else:
         return jsonify({'error': 'Method not allowed'}), 405
 
+@server.route('/reccomandations/<int:user_id>', methods = ['GET'])
+def get_past_recs(user_id):
+    if request.method == 'GET':
+        if (does_user_id_exist):
+            return jsonify({'error': 'user with given id does not exist'})
+        else:
+            reccomendations = session.execute(
+                    select(Reccomandation.artistname, Reccomandation.songname).where(
+                        Reccomandation.userid == user_id
+                        )
+                    )
+            print(reccomendations)
+            return jsonify(reccomendations), 200
+    else:
+        return jsonify({'error': 'Method not allowed'}), 405
+
 @server.route('/update_review/<int:user_id>/<int:reccomandation_id>',
               methods = ['POST'])
 def update_rev(user_id, reccomandation_id):
@@ -267,13 +290,21 @@ def update_rev(user_id, reccomandation_id):
             return jsonify({'message': 'User added successfully'}), 200
     else:
         return jsonify({'error': 'Method not allowed'}), 405
+
+@server.route('/tokens/<int:user_id>', methods=['GET'])
+def get_token_number(user_id):
+    if request.method == 'GET':
+        token_number = get_token_count_for_user(user_id)
+        return jsonify({'token_count': token_number}), 200
+    else:
+        return jsonify({'error': 'Method not allowed'}), 405
  
 @server.route('/remove_token/<int:user_id>/')
 def remove_token(user_id):
     if(remove_token_from_user(user_id)):
         return jsonify({'success': 'removed one token from user'}), 200
-    else: return jsonify({'error': 'You need at least one token'}), 409
-
+    else:
+        return jsonify({'error': 'You need at least one token'}), 409
 
 @server.route('/print_messages', methods=['GET'])
 def print_all_messages():
@@ -300,6 +331,23 @@ def contactus():
         return jsonify({'error': "Cannot connect to database, try again later"}), 503
 
     return jsonify({'message': 'Message added successfully'}), 200   
+
+@server.route('/checkAPIcredentials', methods=['POST'])
+def checkAPIcreds():
+    if request.method == 'POST':
+        r_userid = request.json.get("user_id", None)
+        r_api_token = request.json.get("apicred", None)
+
+        if (does_user_id_exist(r_userid)):
+            apicred = session.execute(select(User.apicred).where(User.id == r_userid)).first() 
+            if apicred == r_api_token:
+                return jsonify({'result': "Success"}), 200
+            else:
+                return jsonify({'result': "Failure"}), 200
+        else:
+            return jsonify({'error': 'user not found'}), 404
+    else:
+        return jsonify({'error': 'Method not allowed'}), 405
 
 # Utility functions
 
@@ -330,6 +378,14 @@ def does_review_exist(user_id, reccomandation_id):
         return False
     else:
         return True
+
+def does_user_id_exist(user_id):
+    user = session.execute(
+            select(User.id).where(User.id == user_id)
+            ).first()
+    if user is None:
+        return False
+    return True
 
 def get_user_id(uname):
     user = session.execute(
