@@ -185,6 +185,10 @@ def recommendations():
                         final_res = {}
                         final_res[song_artist] = search_res[song_artist]
                         return render_template('get_rec.html', results = final_res, found = True)
+                    elif ret.status_code == 404:
+                        flash("song wasn't found. Try looking for something more popular?", "danger")
+                        return render_template('get_rec.html', results = None, found = False)
+
                     else:
                         flash(error_handler(ret.status_code, ret.json()), "danger")
                         return render_template('get_rec.html', results = None, found = False)

@@ -29,7 +29,7 @@ class User(Base):
     username = sqlalchemy.Column(sqlalchemy.String(length=30), unique=True)
     email    = sqlalchemy.Column(sqlalchemy.String(length=30))
     password = sqlalchemy.Column(sqlalchemy.Text()) # password hash is bigger than a string
-    apicred  = sqlalchemy.Column(sqlalchemy.Text()) # Also hashed
+    apicred  = sqlalchemy.Column(sqlalchemy.String(length=33)) 
     availabletokens = sqlalchemy.Column(sqlalchemy.Integer)
 
     recommendations: Mapped[List["Reccomandation"]] = relationship()
@@ -48,7 +48,8 @@ class User(Base):
             'username': self.username,
             'email': self.email,
             'tokens': self.availabletokens,
-            'recommendations': []}
+            'recommendations': [],
+            'apicred': self.apicred}
         for elem in self.recommendations:
             a['recommendations'].append(elem.to_dict())
         return a
@@ -137,12 +138,13 @@ def user():
         new_password = user_data.get('password')
         new_availabletokens = 10
 
+        new_api_token = secrets.token_hex(16)
+
         # New user instance from its model
         new_user = User(username=new_username, email=new_email,
-                        availabletokens=new_availabletokens)
+                        availabletokens=new_availabletokens, apicred = new_api_token)
         # Set hashed password
         new_user.set_password(new_password)
-        new_user.generate_api_credentials()
 
         # Saving it in the db
         try:
@@ -219,6 +221,10 @@ def get_rec(user_id):
             ret=requests.post(ml_url+"get_reccomandation", json=data)
 
             if ret.status_code == 200:
+                if 'name'  not in ret.json():
+                    add_token_to_user(user_id, 1) # give back the token
+                    return jsonify({'error': 'song not found'}), 404
+
                 recommendedsongname   = ret.json().get('name')
                 recommendedsongartist = ret.json().get('artist')
                 recommendedsongartist = recommendedsongartist.replace("'", "")
@@ -239,6 +245,8 @@ def get_rec(user_id):
                     return jsonify({'error': 'cannot connect to database'}), 503
 
                 return jsonify(new_reccomandation.to_dict()), 200
+            elif ret.status_code == 404:
+                return jsonify({'error': 'song not found'}), 404
             else:
                 return jsonify({'error': 'cannot connect to mlengine'}), 503
         else:

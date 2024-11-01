@@ -42,6 +42,9 @@ def get_rec():
     # Actual calculation
     song_vectorizer = CountVectorizer()
     song_vectorizer.fit(song_data['genres'])
+
+    if song_data[song_data['name'] == song_title].empty:
+        return jsonify({"error": "song not found"}, 404)
     
     song_data.head()
 
@@ -55,11 +58,11 @@ def get_rec():
 
     return jsonify({"name":return_data['name'].values[0], "artist":return_data['artists'].values[0]}), 200
 
-def get_similiarities(song_name, music_data, vectorizer):
+def get_similiarities(song_name, song_artist, music_data, vectorizer):
     # Get input song vector
     print("calculating similiarities...")
     reduced_dataframe = music_data.copy()
-    reduced_dataframe.drop(columns=['artists', 'popularity'])
+    reduced_dataframe.drop(columns=['popularity'])
 
     text_data_array = vectorizer.transform(reduced_dataframe[reduced_dataframe['name'] == song_name]['genres']).toarray()
     num_data_array = reduced_dataframe[reduced_dataframe['name']== song_name].select_dtypes(include=numpy.number).to_numpy()
@@ -78,7 +81,7 @@ def get_similiarities(song_name, music_data, vectorizer):
     return similiarities
 
 def recommend_song(song_name, artist_name, music_data, vectorizer):
-    music_data['similiarity_factor'] = get_similiarities(song_name, music_data, vectorizer)
+    music_data['similiarity_factor'] = get_similiarities(song_name, artist_name, music_data, vectorizer)
     print("song name: ", song_name)
     print("artist name: ", artist_name)
     music_data_result = music_data[music_data['artists'] != ("'"+artist_name+"'")]
