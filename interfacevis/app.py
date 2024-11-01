@@ -146,7 +146,7 @@ def get_rec():
 
             # if the song exists
             if results:
-                return render_template('get_rec.html', results = results)
+                return render_template('get_rec.html', results = results, found = False)
 
             else: 
                 flash("Song not found!", "danger")
@@ -174,10 +174,14 @@ def recommendations():
                     ret = requests.post(bl_url+"get_new_recommendation/"+str(session['user_id']),json=data)
 
                     if ret.status_code == 200:
-                        return render_template('get_rec.html', results = None)
+                        print('\n\nRETURNNNN\n')
+                        print(ret.json())
+                        song_title = ret.json().get('songname')
+                        flash('Recommendation found!', 'success')
+                        return render_template('get_rec.html', results = retr_link(song_title), found = True)
                     else:
-                        flash("error", "danger")
-                        return render_template('get_rec.html', results = None)
+                        flash(error_handler(ret.status_code, ret.json()), "danger")
+                        return render_template('get_rec.html', results = None, found = False)
                     
                 else:
                     flash(error_handler(ret.status_code, ret.json()), 'danger')
