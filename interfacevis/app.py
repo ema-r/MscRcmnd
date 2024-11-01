@@ -167,6 +167,7 @@ def recommendations():
                 print("\nTOKEN REMOVED!!!!\n")
                 ret = requests.get(bl_url+'remove_token/'+str(session['user_id']))
 
+                flash('Calculating a reccomandation. This may take a while...')
                 if(ret.status_code == 200):
                     song_title = request.form.get('track_title', None)
                     song_artist = request.form.get('artist_name', None)
@@ -177,8 +178,13 @@ def recommendations():
                         print('\n\nRETURNNNN\n')
                         print(ret.json())
                         song_title = ret.json().get('songname')
+                        song_artist = ret.json().get('artistname')
+                        print("Song artist found: ", song_artist)
                         flash('Recommendation found!', 'success')
-                        return render_template('get_rec.html', results = retr_link(song_title), found = True)
+                        search_res = retr_link(song_title)
+                        final_res = {}
+                        final_res[song_artist] = search_res[song_artist]
+                        return render_template('get_rec.html', results = final_res, found = True)
                     else:
                         flash(error_handler(ret.status_code, ret.json()), "danger")
                         return render_template('get_rec.html', results = None, found = False)
@@ -249,10 +255,11 @@ def retr_link(song):
     headers = {'Content-Type': 'application/json'}
     ret=requests.post(sp_url+"spotify_search", data=data, headers=headers)
     if(ret.status_code==200):
+        print("found links: ", ret.json())
         return ret.json()
     else:
         error_handler(ret.status_code)
-        return None
+        return jsonify({'error': 'error'})
 
 
 if __name__ == "__main__":

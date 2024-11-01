@@ -56,7 +56,7 @@ class User(Base):
 class Reccomandation(Base):
     __tablename__ = 'Reccomandations'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, nullable=False)
-    songname   = sqlalchemy.Column(sqlalchemy.String(length=30))
+    songname   = sqlalchemy.Column(sqlalchemy.String(length=50))
     artistname = sqlalchemy.Column(sqlalchemy.String(length=30))
 
     userid: Mapped[int] = mapped_column(ForeignKey("Users.id"))

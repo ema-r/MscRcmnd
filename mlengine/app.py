@@ -49,6 +49,10 @@ def get_rec():
 
     return_data = recommend_song(song_title, song_artist, working_dataframe, song_vectorizer)
 
+    print("return data names: ", return_data['name'])
+    print("return data artists: ", return_data['artists'])
+
+
     return jsonify({"name":return_data['name'].values[0], "artist":return_data['artists'].values[0]}), 200
 
 def get_similiarities(song_name, music_data, vectorizer):
