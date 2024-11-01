@@ -43,13 +43,14 @@
                             <tr class="align-middle">
                                 <td>
                                     <div class="d-flex align-items-center">
+                                        <img src="{{ details.img }}" class="avatar sm rounded-pill me-3 flex-shrink-0" id="spot" alt="Artist">
                                         <div>
                                             <div class="h6 mb-0 lh-1">{{ artist_name }}</div>
                                         </div>
                                     </div>
                                 </td>
                                 <td>{{ details.track }}</td>
-                                <td> <span class="d-inline-block align-middle"><a href="{{ details.url }}" target="_blank">Here</a></span></td>
+                                <td> <span class="d-inline-block align-middle"><a href="{{ details.url }}" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg" class="avatar sm rounded-pill me-3 flex-shrink-0"></a></span></td>
                                 <td><span>
                                     {% if details.preview is not none %} 
                                         <img class="play-icon" src="{{ url_for('static', filename='play.png') }}" alt="Play">
@@ -58,10 +59,10 @@
                                 </span></td>
                                 <td class="text-end">
                                     {% if not found %}
-                                        <form action="/recommendations" method="POST" class="d-inline-block align-middle">
+                                        <form action="/recommendations" method="POST" class="d-inline-block">
                                             <input type="hidden" name="artist_name" value="{{ artist_name }}">
                                             <input type="hidden" name="track_title" value="{{ details.track }}">
-                                            <button type="submit" class="btn btn-success">Get Recommendations</button>
+                                            <button type="submit" class="btn btn-success align-middle">Get Recommendations</button>
                                         </form>
                                     {% endif %}
                                 </td>
@@ -75,33 +76,6 @@
     </div>
 
 
-
-
-   <!--     <ul class="list-group">
-            {% for artist_name, details in results.items() %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <a href="{{ details.url }}" target="_blank"> {{ artist_name }} - {{ details.track }}</a>
-                    {% if not found %}
-                        <span class="badge bg-secondary">
-                            <form action="/recommendations" method="POST" class="d-inline">
-                                <input type="hidden" name="artist_name" value="{{ artist_name }}">
-                                <input type="hidden" name="track_title" value="{{ details.track }}">
-                                <button type="submit" class="btn btn-primary btn-sm ms-2">Get Recommendations</button>
-                            </form>
-                        </span>
-                    {% endif %}
-
-                    {% if details.preview is not none %}
-                        <span class="badge bg-secondary">   
-                            <img class="play-icon" src="{{ url_for('static', filename='play.png') }}" alt="Play">
-                            <audio class="audioPlayer" src="{{ details.preview }}"></audio> 
-                        </span>
-                    {% endif %}
-                </li>
-            {% endfor %}
-        </ul>
-    </div>
--->
 
     <script>
         class Audio{
@@ -140,13 +114,10 @@
             audios.push(audio);
 
             playIcon.addEventListener('click', function() {
-                console.log("Premuto tasto numero:", index);
-                console.log("Al momento sta suonando:", currentlyPlayingIndex);
 
                 // If there's a currently playing track that isn't the one clicked
                 if (currentlyPlayingIndex !== null && currentlyPlayingIndex !== index) {
                     audio.to_string();
-                    console.log("CHI STA SUONANDO?");
                     audios[currentlyPlayingIndex].to_string();
                     audios[currentlyPlayingIndex].pause(); // Pause the currently playing audio
                 }

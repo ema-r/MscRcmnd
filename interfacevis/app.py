@@ -169,7 +169,7 @@ def recommendations():
                 print("\nTOKEN REMOVED!!!!\n")
                 ret = requests.get(bl_url+'remove_token/'+str(session['user_id']))
 
-                flash('Calculating a reccomandation. This may take a while...')
+                #flash('Calculating a reccomandation. This may take a while...')
                 if(ret.status_code == 200):
                     song_title = request.form.get('track_title', None)
                     song_artist = request.form.get('artist_name', None)

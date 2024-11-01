@@ -33,23 +33,30 @@ def comp_search(ret):
     track_name = []
     preview = []
     link = []
+    img = []
 
     for i, t in enumerate(ret['tracks']['items']):
         artist_name.append(t['artists'][0]['name'])
         track_name.append(t['name'])
         preview.append(t['preview_url'])
         link.append(t['external_urls']['spotify'])
-        # need to get URI
-    
+
+        artist = spot.sp.artist(t['artists'][0]['uri'])
+        if artist['images']:
+            img.append(artist['images'][0]['url'])
+        else:
+            img.append(None)
+
+            
     result_dict = {
         k: {
             'track': v,
             'preview': track_preview,
-            'url': track_url
-        } for k, v, track_preview, track_url in zip(artist_name, track_name, preview, link)
-}
+            'url': track_url,
+            'img': image
+        } for k, v, track_preview, track_url, image in zip(artist_name, track_name, preview, link, img)
+    }
 
-    print(result_dict, flush=True)
     
     return result_dict
 
