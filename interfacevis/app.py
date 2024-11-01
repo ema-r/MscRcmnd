@@ -159,6 +159,8 @@ def get_rec():
         flash("You must be logged in", "danger")
         return render_template("index.html", active_page="index")
 
+
+
 @app.route('/recommendations', methods=['POST'])
 def recommendations():
         if request.method == 'POST':
@@ -167,7 +169,7 @@ def recommendations():
                 print("\nTOKEN REMOVED!!!!\n")
                 ret = requests.get(bl_url+'remove_token/'+str(session['user_id']))
 
-                flash('Calculating a reccomandation. This may take a while...')
+                #flash('Calculating a reccomandation. This may take a while...')
                 if(ret.status_code == 200):
                     song_title = request.form.get('track_title', None)
                     song_artist = request.form.get('artist_name', None)
