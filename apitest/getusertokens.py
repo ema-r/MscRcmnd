@@ -12,7 +12,7 @@ data = {'user_id': sys.argv[1], 'api_credential': sys.argv[2]}
 ret = requests.post(url, json=data)
 
 if ret.status_code == 200:
-    print(ret.json)
+    print(ret.json())
 else:
     print("error")
 
