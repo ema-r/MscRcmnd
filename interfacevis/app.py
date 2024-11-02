@@ -142,8 +142,9 @@ def get_rec():
             song_title = request.form.get('song_title')
 
             results = retr_link(song_title)
-            results = dict(sorted(results.items(), key=lambda item: item[1]['pop'], reverse=True))
 
+            # sorting by match  
+            results = sort_artists_by_track_similarity(song_title, results)
 
             # if the song exists
             if results:
@@ -264,6 +265,52 @@ def retr_link(song):
     else:
         error_handler(ret.status_code)
         return jsonify({'error': 'error'})
+    
+
+# compute similarity for songs' titles (improving spotify's algorithm)
+def levenshtein_distance(s1, s2):
+    if len(s1) < len(s2):
+        return levenshtein_distance(s2, s1)
+
+    if len(s2) == 0:
+        return len(s1)
+
+    previous_row = range(len(s2) + 1)
+    for i, c1 in enumerate(s1):
+        current_row = [i + 1]
+        for j, c2 in enumerate(s2):
+            insertions = previous_row[j + 1] + 1
+            deletions = current_row[j] + 1
+            substitutions = previous_row[j] + (c1 != c2)
+            current_row.append(min(insertions, deletions, substitutions))
+        previous_row = current_row
+
+    return previous_row[-1]
+
+def similarity_score(target_word, comparison_word):
+    distance = levenshtein_distance(target_word, comparison_word)
+    max_length = max(len(target_word), len(comparison_word))
+    
+    # Normalize the score: 1.0 means identical, 0.0 means completely different
+    score = 1 - distance / max_length
+    return score
+
+def sort_artists_by_track_similarity(target_word, artist_data):
+    # Calculate similarity scores and prepare for sorting
+    scores = {}
+    for artist, info in artist_data.items():
+        track = info['track']
+        score = similarity_score(target_word, track)
+        popularity = info['pop']
+        scores[artist] = (score, popularity)  # Store the score and popularity
+
+    # Sort artists based on (similarity score, popularity)
+    sorted_artists = sorted(scores.items(), key=lambda item: (item[1][0], item[1][1]), reverse=True)
+
+    # Reconstruct the artist_data dictionary in sorted order
+    sorted_artist_data = {artist: artist_data[artist] for artist, _ in sorted_artists}
+
+    return sorted_artist_data
 
 
 if __name__ == "__main__":

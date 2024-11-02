@@ -12,7 +12,7 @@ def hello():
 def search():
     title = request.json.get("title")
     try:
-        ret = spot.sp.search(title, type="track", limit=15, market="IT")
+        ret = spot.sp.search(title, type="track", limit=15)
     except:
         return jsonify({"error": "Error fetching the request"}), 500
     result = comp_search(ret)
