@@ -65,6 +65,18 @@
                                             <input type="hidden" name="track_title" value="{{ details.track }}">
                                             <button type="submit" class="btn btn-success align-middle">Get Recommendations</button>
                                         </form>
+                                    {% else %}
+                                        <form action="/review" method="POST" class="d-inline-block">
+                                            <input type="hidden" name="id" value="{{ details.id }}">
+                                            <input type="hidden" name="userid" value="{{ details.user_id }}">
+                                            <input type="hidden" id="feedback" name="feedback" value="">
+                                            <input type="image" name="feedback" onclick="setFeedback('1')" 
+                                                src="{{ url_for('static', filename='thumb-up.png') }}" 
+                                                alt="Like" width="36" height="36">
+                                            <input type="image" name="feedback" onclick="setFeedback('-1')" 
+                                                src="{{ url_for('static', filename='thumb-down.png') }}" 
+                                                alt="Dislike" width="36" height="36">
+                                        </form>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -159,6 +171,11 @@
             link.innerText = 'Showing All'; // Change text
             link.style.pointerEvents = 'none'; // Disable clicks
             link.style.color = 'gray';
+        }
+
+
+        function setFeedback(value){
+            document.getElementById("feedback").value = value
         }
     
     </script>

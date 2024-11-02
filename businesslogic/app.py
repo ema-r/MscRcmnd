@@ -65,7 +65,7 @@ class Reccomandation(Base):
     def to_string(self):
         return f'Song: {self.songname}, by {self.artistname}'
     def to_dict(self):
-        return {'songname': self.songname, 'artistname': self.artistname}
+        return {'songname': self.songname, 'artistname': self.artistname, 'userid': self.userid, 'id': self.id}
     def __repr__(self):
         return f'song name: {self.songname}, artist name: {self.artistname}, user id: {self.userid}'
     
@@ -79,6 +79,9 @@ class Review(Base):
     userid = sqlalchemy.Column(sqlalchemy.Integer)
     songid = sqlalchemy.Column(sqlalchemy.Integer)      # Used as recommandation id
     rating = sqlalchemy.Column(sqlalchemy.Float)
+
+    def __repr__(self):
+        return f'id = {self.id}, user_id = {self.userid}, songid = {self.songid}, rating = {self.rating}'
 
 class Message(Base):
     __tablename__ = 'Messages'
@@ -197,13 +200,6 @@ def get():
         print(user.to_dict())
         return jsonify(user.to_dict())
 
-@server.route('/delete/<int:user_id>')
-def delete(user_id):
-    print(user_id)
-    if delete_user(user_id):
-        return jsonify({'result': 'User deleted successfully'}), 200
-    else:
-        return jsonify({'error': 'Cannot delete user'}), 409
 
 @server.route('/add_token/<int:user_id>/<int:val>')
 def add_token(user_id, val):
@@ -254,27 +250,15 @@ def get_rec(user_id):
     else:
         return jsonify({'error': 'Method not allowed'}), 405
 
-@server.route('/reccomandations/<int:user_id>', methods = ['GET'])
-def get_past_recs(user_id):
-    if request.method == 'GET':
-        if not (does_user_id_exist):
-            return jsonify({'error': 'user with given id does not exist'})
-        else:
-
-            user_data = request.json.get('id', None)
-            user = session.query(User).get(user_data)
-            return jsonify({'reccomendations': user.to_dict()['reccomendations']}), 200
-    else:
-        return jsonify({'error': 'Method not allowed'}), 405
-
 @server.route('/update_review/<int:user_id>/<int:reccomandation_id>',
               methods = ['POST'])
 def update_rev(user_id, reccomandation_id):
     if request.method == 'POST':
         new_rating = request.json.get("rating")
-
+        new_rating = int(new_rating)
+        print(f'RATING = {new_rating}', flush=True)
         # Check if a review with this combination of ids exists
-        if (does_review_exist and (new_rating == -1.0 or new_rating == 1.0)):
+        if (does_review_exist(user_id, reccomandation_id) and (new_rating != -1 or new_rating != 1)):
             return jsonify({'error': 'Not allowed to modify review'}), 403
         else:
             new_review = Review(userid=user_id, songid=reccomandation_id,
@@ -381,6 +365,7 @@ def does_email_exists(email):
 def does_review_exist(user_id, reccomandation_id):
     review = session.execute(
             select(Review.id).where(Review.userid == user_id and Review.songid == reccomandation_id)).first()
+    print(f'REVIEW: {review}', flush=True)
     if review is None:
         return False
     else:
@@ -408,16 +393,6 @@ def is_user(token_uid, tried_uid):
         return False
     return True
 
-def delete_user(user_id):
-    try:
-        session.query(User).filter(User.id == user_id).delete()
-        session.commit()
-    except SQLAlchemyError as e:
-        error=str(e.__dict__['orig'])
-        print(error)
-        session.rollback()
-        return False
-    return True
 
 def add_token_to_user(user_id, val):
     try:
@@ -431,9 +406,8 @@ def add_token_to_user(user_id, val):
 
 def remove_token_from_user(user_id):
         try:
-            print("user_id=", user_id)
             tok=session.execute(select(User.availabletokens).where(User.id==user_id)).first()[0]
-            print(tok)
+            print(f'user has {tok} tokens')
             if(tok>0):
                 session.query(User).filter_by(id=user_id).update({User.availabletokens: User.availabletokens - 1})
                 session.commit()

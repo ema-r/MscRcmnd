@@ -163,6 +163,31 @@ def get_rec():
 
 
 
+@app.route('/review', methods=['POST'])
+def review():
+    print("REVIEW", flush=True)
+    if request.method == 'POST':
+        if 'username' in session:
+            # Saving review to businesslogic
+            data = {'rating': request.form.get('feedback')}
+            ret = requests.post(f"{bl_url}update_review/{str(session['user_id'])}/{request.form.get('id')}", json=data)
+            
+            if(ret.status_code == 200):
+                tokens = requests.get(f'{bl_url}tokens/{str(session['user_id'])}')
+                flash(f"Review accepted! Your current balance is {tokens.json().get('token_count')}", 'success')
+                return render_template('index.html', active_page='index')
+            else:
+                flash(error_handler(ret.status_code, ret.json()), "danger")
+                return render_template('index.html', active_page='index')
+        
+        else: 
+            flash("You must be logged in", "danger")
+            return render_template("index.html", active_page="index")
+    
+    elif request.method == "GET":
+            return render_template('get_rec.html', results=None)
+
+
 @app.route('/recommendations', methods=['POST'])
 def recommendations():
         if request.method == 'POST':
@@ -186,6 +211,10 @@ def recommendations():
                         search_res = retr_link(song_title)
                         final_res = {}
                         final_res[song_artist] = search_res[song_artist]
+                        final_res[song_artist]['user_id'] = ret.json().get('userid')
+                        final_res[song_artist]['id'] = ret.json().get('id')
+                        print(final_res, flush=True)
+
                         return render_template('get_rec.html', results = final_res, found = True)
                     elif ret.status_code == 404:
                         flash("song wasn't found. Try looking for something more popular?", "danger")
