@@ -42,8 +42,8 @@
                     <ul class="list-group">
                         {% for i in range(user.recommendations | length) %}
                         <li class="list-group-item">
-                            <strong>{{ user.recommendations[i].songname }}</strong> by {{ user.recommendations[i].artistname }} {% if user.reviews[i] %}<span style="float: right; margin-right: 10px;">
-                                <img src="{% if user.reviews[i] == 1.0 %} {{ url_for('static', filename='thumb-up.png') }} {% else %} {{ url_for('static', filename='thumb-down.png') }}{% endif %}" alt="{{ user.reviews[i]}}" width="30" height="30">
+                            <strong>{{ user.recommendations[i].songname }}</strong> by {{ user.recommendations[i].artistname }} {% if user.recommendations[i].rating %}<span style="float: right; margin-right: 10px;">
+                              <img src="{% if user.recommendations[i].rating == 1.0 %} {{ url_for('static', filename='thumb-up.png') }} {% elif user.recommendations[i].rating == -1.0 %} {{ url_for('static', filename='thumb-down.png') }} {% else %} {% endif %}" alt="{{ user.recommendations[i].rating}}" width="30" height="30">
                             </span> {% endif %}
                         </li>
                         {% else %}

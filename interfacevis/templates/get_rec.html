@@ -11,6 +11,7 @@
         <form action="{{ url_for('get_rec') }}" method="post">
             <div class="input-group mb-3">
                 <input type="text" class="form-control" placeholder="Search for a song..." aria-label="Search for a song..." aria-describedby="basic-addon2" name="song_title" value="{{ request.form.song_title if request.method == 'POST' else '' }}">
+                <input type="text" class="form-control" placeholder="By artist..." aria-label="By artist..." aria-describedby="basic-addon2" name="artist" value="{{ request.form.artist if request.method == 'POST' else '' }}">
                 <div class="input-group-append">
                     <button class="btn btn-outline-secondary" type="submit">Search</button>
                 </div>

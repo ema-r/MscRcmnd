@@ -49,12 +49,17 @@ class User(Base):
             'email': self.email,
             'tokens': self.availabletokens,
             'recommendations': [],
-            'reviews' : [],
             'apicred': self.apicred}
         for elem in self.recommendations:
-            a['recommendations'].append(elem.to_dict())
-            if elem.reviewid is not None:
-                a['reviews'].append(elem.reviewid.result())
+            new_dict = elem.to_dict()
+            review = elem.reviewid
+            if review is None:
+                new_dict['rating'] = 0
+            else:
+                new_dict['rating'] = review.result()
+            a['recommendations'].append(new_dict)
+            #if elem.reviewid is not None:
+            #    a['reviews'].append(elem.reviewid.result())
         return a
 
 class Reccomandation(Base):
@@ -90,7 +95,7 @@ class Review(Base):
     def __repr__(self):
         return f'id = {self.id}, user_id = {self.userid}, songid = {self.songid}, rating = {self.rating}'
     def result(self):
-        return f'rating = {self.rating}'
+        return self.rating
 
 class Message(Base):
     __tablename__ = 'Messages'
@@ -267,25 +272,28 @@ def update_rev(user_id, reccomandation_id):
         new_rating = int(new_rating)
         print(f'RATING = {new_rating}', flush=True)
         # Check if a review with this combination of ids exists
-        if (does_review_exist(user_id, reccomandation_id) and (new_rating != -1 or new_rating != 1)):
+        if (does_review_exist(user_id, reccomandation_id)):
             return jsonify({'error': 'Not allowed to modify review'}), 403
-        else:
-            new_review = Review(userid=user_id, songid=reccomandation_id,
-                                rating=new_rating, recc_id = reccomandation_id)
 
-            # Saving it in the db
-            try:
-                session.add(new_review)
-                session.commit()
-            except(SQLAlchemyError) as e:
-                error = str(e.__dict__['orig'])
-                print(error)
-                session.rollback()
-                return jsonify({'error': "Cannot connect to database, try again later"}), 503
+        if (new_rating != -1 and new_rating != 1):
+            return jsonify({'error': 'Rating not valid'}), 403
 
-            add_token_to_user(user_id, 1)
+        new_review = Review(userid=user_id, songid=reccomandation_id,
+                            rating=new_rating, recc_id = reccomandation_id)
 
-            return jsonify({'message': 'review added succesfully'}), 200
+        # Saving it in the db
+        try:
+            session.add(new_review)
+            session.commit()
+        except(SQLAlchemyError) as e:
+            error = str(e.__dict__['orig'])
+            print(error)
+            session.rollback()
+            return jsonify({'error': "Cannot connect to database, try again later"}), 503
+
+        add_token_to_user(user_id, 1)
+
+        return jsonify({'message': 'review added succesfully'}), 200
     else:
         return jsonify({'error': 'Method not allowed'}), 405
 
@@ -373,7 +381,7 @@ def does_email_exists(email):
 
 def does_review_exist(user_id, reccomandation_id):
     review = session.execute(
-            select(Review.id).where(Review.userid == user_id and Review.songid == reccomandation_id)).first()
+            select(Review.id).where(Review.userid == user_id, Review.songid == reccomandation_id)).first()
     print(f'REVIEW: {review}', flush=True)
     if review is None:
         return False

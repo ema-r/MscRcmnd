@@ -11,8 +11,9 @@ def hello():
 @app.route('/spotify_search', methods=["POST"])
 def search():
     title = request.json.get("title")
+    artist = request.json.get("artist")
     try:
-        ret = spot.sp.search(title, type="track", limit=15)
+        ret = spot.sp.search(q="artist:" + artist + " track:" + title, type="track", limit=15)
     except:
         return jsonify({"error": "Error fetching the request"}), 500
     result = comp_search(ret)

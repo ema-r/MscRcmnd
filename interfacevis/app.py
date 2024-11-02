@@ -140,8 +140,9 @@ def get_rec():
         if request.method == 'POST':
             # Process the form data
             song_title = request.form.get('song_title')
+            artist = request.form.get('artist')
 
-            results = retr_link(song_title)
+            results = retr_link(song_title, artist)
 
             # sorting by match  
             results = sort_artists_by_track_similarity(song_title, results)
@@ -208,7 +209,7 @@ def recommendations():
                         song_artist = ret.json().get('artistname')
                         print("Song artist found: ", song_artist)
                         flash('Recommendation found!', 'success')
-                        search_res = retr_link(song_title)
+                        search_res = retr_link(song_title, song_artist)
                         final_res = {}
                         final_res[song_artist] = search_res[song_artist]
                         final_res[song_artist]['user_id'] = ret.json().get('userid')
@@ -284,8 +285,8 @@ def get_pic(email, size=200, default='identicon', rating='g'):
     return f"https://www.gravatar.com/avatar/{hash}?s={size}&d={default}&r={rating}"
 
 
-def retr_link(song):
-    data = {'title': song}
+def retr_link(song, artist):
+    data = {'title': song, 'artist': artist}
     data = json.dumps(data)
     headers = {'Content-Type': 'application/json'}
     ret=requests.post(sp_url+"spotify_search", data=data, headers=headers)
