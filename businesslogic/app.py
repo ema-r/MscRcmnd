@@ -257,16 +257,13 @@ def get_rec(user_id):
 @server.route('/reccomandations/<int:user_id>', methods = ['GET'])
 def get_past_recs(user_id):
     if request.method == 'GET':
-        if (does_user_id_exist):
+        if not (does_user_id_exist):
             return jsonify({'error': 'user with given id does not exist'})
         else:
-            reccomendations = session.execute(
-                    select(Reccomandation.artistname, Reccomandation.songname).where(
-                        Reccomandation.userid == user_id
-                        )
-                    )
-            print(reccomendations)
-            return jsonify(reccomendations), 200
+
+            user_data = request.json.get('id', None)
+            user = session.query(User).get(user_data)
+            return jsonify({'reccomendations': user.to_dict()['reccomendations']}), 200
     else:
         return jsonify({'error': 'Method not allowed'}), 405
 
@@ -295,7 +292,7 @@ def update_rev(user_id, reccomandation_id):
 
             add_token_to_user(user_id, 1)
 
-            return jsonify({'message': 'User added successfully'}), 200
+            return jsonify({'message': 'review added succesfully'}), 200
     else:
         return jsonify({'error': 'Method not allowed'}), 405
 
@@ -348,7 +345,9 @@ def checkAPIcreds():
 
         if (does_user_id_exist(r_userid)):
             apicred = session.execute(select(User.apicred).where(User.id == r_userid)).first() 
-            if apicred == r_api_token:
+            print("apicred: ", apicred[0])
+            print("r_api_token: ", r_api_token)
+            if apicred[0] == r_api_token:
                 return jsonify({'result': "Success"}), 200
             else:
                 return jsonify({'result': "Failure"}), 200

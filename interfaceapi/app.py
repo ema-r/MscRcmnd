@@ -20,12 +20,10 @@ def get_data():
         r_api_token = request.json.get("api_credential", None)
 
         if are_credentials_valid(r_user_id, r_api_token):
-            data = {'id': r_user_id}
-            ret = requests.post(bl_url+"user_id", json=data)
-            if ret.status_code == 200:
-                return ret.json, 200
-            else:
-                return jsonify({'error': 'Error recovering user_data'}), 405
+            user = get_user(r_user_id)
+            return jsonify(user), 200
+        else:
+            return jsonify({'error': 'credentials are not correct'}), 403
 
    else:
        return jsonify({'error': 'Method not allowed'}), 405
@@ -37,12 +35,15 @@ def get_recs():
         r_api_token = request.json.get("api_credential", None)
 
         if are_credentials_valid(r_user_id, r_api_token):
-            ret = requests.get(bl_url+"reccomandations/"+r_user_id)
-            if ret.status_code == 200:
-                return ret.json, 200
-            else:
-                return jsonify({'error': 'Error recovering reccomandations'}), 405
+            user = get_user(r_user_id)
+        
+            recs = []
+            for rec in user['recommendations']:
+                recs.append(rec)
 
+            return jsonify({'reccomandations': recs}), 200
+        else:
+            return jsonify({'error': 'credentials are not correct'}), 403
    else:
        return jsonify({'error': 'Method not allowed'}), 405
 
@@ -53,11 +54,10 @@ def get_tokens():
         r_api_token = request.json.get("api_credential", None)
 
         if are_credentials_valid(r_user_id, r_api_token):
-            ret = requests.get(bl_url+"reccomandations/"+r_user_id)
-            if ret.status_code == 200:
-                return ret.json, 200
-            else:
-                return jsonify({'error': 'Error recovering token count'}), 405
+            user = get_user(r_user_id)
+            return jsonify({'token_count': user['tokens']}), 200
+        else:
+            return jsonify({'error': 'credentials are not correct'}), 403
 
    else:
        return jsonify({'error': 'Method not allowed'}), 405
@@ -72,9 +72,9 @@ def get_recco():
 
         if are_credentials_valid(r_user_id, r_api_token):
             data = {'song_title':r_song_title, 'song_artist':r_artist}
-            ret = requests.get(bl_url+"/get_new_recommendation/"+r_user_id, json=data)
+            ret = requests.post(bl_url+"/get_new_recommendation/"+r_user_id, json=data)
             if ret.status_code == 200:
-                return ret.json, 200
+                return jsonify(ret.json()), 200
             else:
                 return jsonify({'error': 'Error recovering reccomandation'}), 405
 
@@ -97,51 +97,30 @@ def submit_review():
             data = {'rating': r_evaluation}
             ret = requests.post(bl_url+"update_review/"+r_user_id+"/"+r_reccomandation_id, json = data)
             if ret.status_code == 200:
-                return ret.json, 200
+                return jsonify(ret.json()), 200
             else:
                 return jsonify({'error': 'Error submitting review'}), 405
 
    else:
        return jsonify({'error': 'Method not allowed'}), 405
 
-#@app.route('/getAPIcredentials', methods=['POST'])
-#def getAPIcreds():
-#    if request.method == 'POST':
-#        r_username = request.json.get("username", None)
-#        r_password_hash = request.json.get("password_hash", None)
-#        
-#        if (does_username_exists(r_username)):
-#            password = session.execute(select(User.password).where(User.username == r_username)).first()
-#            if r_password_hash == password:
-#                apitoken = session.execute(select(User.apicred).where(User.username == r_username)).first()
-#                return jsonify({'api_token':apitoken})
-#            else:
-#                return jsonify({'error': 'password incorrect'}), 403
-#
-#        else:
-#            return jsonify({'error': 'Username does not exist'}), 404
-#
-#    else:
-#        return jsonify({'error': 'Method not allowed'}), 405
-
 # Helper functions
 def are_credentials_valid(userid, api_credentials):
     data={"user_id": userid, "apicred": api_credentials}
-    ret=requests.post(bl_url+"addmessages", json=data)
+    ret=requests.post(bl_url+"checkAPIcredentials", json=data)
 
     if ret.status_code == 200:
-        if ret.json()["result"] == "Success":
+        if ret.json().get("result") == "Success":
             return True
         else:
             return False
     else:
         return False
 
-
-# standard request format
-#   if request.method == 'POST':
-#   else:
-#       return jsonify({'errro': 'Method not allowed'}), 405
+def get_user(user_id):
+    data = {'id': str(user_id)}
+    ret = requests.post(bl_url +"user_id", json = data)
+    return ret.json()
 
 if __name__ == '__main__':
     app.run()
