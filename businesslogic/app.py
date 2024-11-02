@@ -49,9 +49,12 @@ class User(Base):
             'email': self.email,
             'tokens': self.availabletokens,
             'recommendations': [],
+            'reviews' : [],
             'apicred': self.apicred}
         for elem in self.recommendations:
             a['recommendations'].append(elem.to_dict())
+            if elem.reviewid is not None:
+                a['reviews'].append(elem.reviewid.result())
         return a
 
 class Reccomandation(Base):
@@ -61,6 +64,8 @@ class Reccomandation(Base):
     artistname = sqlalchemy.Column(sqlalchemy.String(length=30))
 
     userid: Mapped[int] = mapped_column(ForeignKey("Users.id"))
+
+    reviewid: Mapped["Review"] = relationship()
 
     def to_string(self):
         return f'Song: {self.songname}, by {self.artistname}'
@@ -80,8 +85,12 @@ class Review(Base):
     songid = sqlalchemy.Column(sqlalchemy.Integer)      # Used as recommandation id
     rating = sqlalchemy.Column(sqlalchemy.Float)
 
+    recc_id: Mapped[int] = mapped_column(ForeignKey("Reccomandations.id"))
+
     def __repr__(self):
         return f'id = {self.id}, user_id = {self.userid}, songid = {self.songid}, rating = {self.rating}'
+    def result(self):
+        return f'rating = {self.rating}'
 
 class Message(Base):
     __tablename__ = 'Messages'
@@ -262,7 +271,7 @@ def update_rev(user_id, reccomandation_id):
             return jsonify({'error': 'Not allowed to modify review'}), 403
         else:
             new_review = Review(userid=user_id, songid=reccomandation_id,
-                                rating=new_rating)
+                                rating=new_rating, recc_id = reccomandation_id)
 
             # Saving it in the db
             try:
