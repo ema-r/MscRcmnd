@@ -142,7 +142,8 @@ def get_rec():
             song_title = request.form.get('song_title')
 
             results = retr_link(song_title)
-            print(results, flush=True)
+            results = dict(sorted(results.items(), key=lambda item: item[1]['pop'], reverse=True))
+
 
             # if the song exists
             if results:
@@ -169,7 +170,6 @@ def recommendations():
                 print("\nTOKEN REMOVED!!!!\n")
                 ret = requests.get(bl_url+'remove_token/'+str(session['user_id']))
 
-                #flash('Calculating a reccomandation. This may take a while...')
                 if(ret.status_code == 200):
                     song_title = request.form.get('track_title', None)
                     song_artist = request.form.get('artist_name', None)
@@ -177,7 +177,6 @@ def recommendations():
                     ret = requests.post(bl_url+"get_new_recommendation/"+str(session['user_id']),json=data)
 
                     if ret.status_code == 200:
-                        print('\n\nRETURNNNN\n')
                         print(ret.json())
                         song_title = ret.json().get('songname')
                         song_artist = ret.json().get('artistname')
@@ -261,7 +260,6 @@ def retr_link(song):
     headers = {'Content-Type': 'application/json'}
     ret=requests.post(sp_url+"spotify_search", data=data, headers=headers)
     if(ret.status_code==200):
-        print("found links: ", ret.json())
         return ret.json()
     else:
         error_handler(ret.status_code)

@@ -25,7 +25,7 @@
             <div class="overflow-hidden card table-nowrap table-card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5>{% if not found %}Search{% endif %} Results</h5>
-                    <a href="#!" class="btn btn-light btn-sm">View All</a>
+                    <a href="#!" id="toggleLink" class="btn btn-light btn-sm" onclick="showAll(); return false;">View All</a>
                 </div>
                 <div class="table-responsive">
                     <table class="table mb-0">
@@ -39,8 +39,9 @@
                             </tr>
                         </thead>
                         <tbody>
+                            {% set counter = [1] %}
                             {% for artist_name, details in results.items() %}
-                            <tr class="align-middle">
+                            <tr class="align-middle" id="item-{{ counter[0] }}" {% if counter[0] > 3 %}style="display: none;"{% endif %}>
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <img src="{{ details.img }}" class="avatar sm rounded-pill me-3 flex-shrink-0" id="spot" alt="Artist">
@@ -67,6 +68,7 @@
                                     {% endif %}
                                 </td>
                             </tr>
+                        {% if counter.append(counter.pop() + 1) %}{% endif %}
                         {% endfor %}
                         </tbody>
                     </table>
@@ -136,6 +138,29 @@
                 currentlyPlayingIndex = null; // Reset the currently playing index
             });
         });
+    
+
+
+        function showAll() {
+            // Get all dictionary keys to know the number of items
+            var keys = Object.keys({{ results|tojson }});  // Convert dict to JSON object in JS
+            
+            // Loop through keys starting from 3
+            for (let i = 3; i < keys.length+1; i++) {
+                console.log(i);
+                var item = document.getElementById(`item-${i}`);
+                if (item) {
+                    item.style.display = "";
+                }
+            }
+
+            // Disable the button after showing all items
+            var link = document.getElementById('toggleLink');
+            link.innerText = 'Showing All'; // Change text
+            link.style.pointerEvents = 'none'; // Disable clicks
+            link.style.color = 'gray';
+        }
+    
     </script>
 {% endif %}
 {% endblock %}

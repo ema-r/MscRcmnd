@@ -32,7 +32,7 @@
 
 .active-text {
     font-weight: bold;
-    color: #ffc107; 
+    color: rgb(255, 252, 255, 0.75) 
 }
 
 /* Override Bootstrap's default button styles */

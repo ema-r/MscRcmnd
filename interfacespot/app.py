@@ -12,7 +12,7 @@ def hello():
 def search():
     title = request.json.get("title")
     try:
-        ret = spot.sp.search(title, type="track", limit=3)
+        ret = spot.sp.search(title, type="track", limit=15, market="IT")
     except:
         return jsonify({"error": "Error fetching the request"}), 500
     result = comp_search(ret)
@@ -34,12 +34,14 @@ def comp_search(ret):
     preview = []
     link = []
     img = []
+    pop = []
 
     for i, t in enumerate(ret['tracks']['items']):
         artist_name.append(t['artists'][0]['name'])
         track_name.append(t['name'])
         preview.append(t['preview_url'])
         link.append(t['external_urls']['spotify'])
+        pop.append(t['popularity'])
 
         artist = spot.sp.artist(t['artists'][0]['uri'])
         if artist['images']:
@@ -53,10 +55,10 @@ def comp_search(ret):
             'track': v,
             'preview': track_preview,
             'url': track_url,
-            'img': image
-        } for k, v, track_preview, track_url, image in zip(artist_name, track_name, preview, link, img)
+            'img': image,
+            'pop': popular
+        } for k, v, track_preview, track_url, image, popular in zip(artist_name, track_name, preview, link, img, pop)
     }
-
     
     return result_dict
 
