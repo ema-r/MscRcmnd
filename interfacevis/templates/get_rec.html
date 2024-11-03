@@ -41,11 +41,18 @@
                         </thead>
                         <tbody>
                             {% set counter = [1] %}
-                            {% for artist_name, details in results.items() %}
+                            {% for artist_name, track_info in results.items() %}
+                            {% for details in track_info %}
                             <tr class="align-middle" id="item-{{ counter[0] }}" {% if counter[0] > 3 %}style="display: none;"{% endif %}>
                                 <td>
                                     <div class="d-flex align-items-center">
+                                        {% if details.img %}
                                         <img src="{{ details.img }}" class="avatar sm rounded-pill me-3 flex-shrink-0" id="spot" alt="Artist">
+                                        {% else %}
+                                        <svg width="36px" height="36px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M12 17V16.9929M12 14.8571C12 11.6429 15 12.3571 15 9.85714C15 8.27919 13.6568 7 12 7C10.6567 7 9.51961 7.84083 9.13733 9M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                        {% endif %}
                                         <div>
                                             <div class="h6 mb-0 lh-1">{{ artist_name }}</div>
                                         </div>
@@ -81,6 +88,7 @@
                                     {% endif %}
                                 </td>
                             </tr>
+                        {% endfor %}
                         {% if counter.append(counter.pop() + 1) %}{% endif %}
                         {% endfor %}
                         </tbody>

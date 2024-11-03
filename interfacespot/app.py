@@ -1,6 +1,7 @@
 import os
 from flask import Flask, jsonify, request
 import spotify_secrets as spot
+import json
 
 app = Flask(__name__)
 
@@ -12,14 +13,32 @@ def hello():
 def search():
     title = request.json.get("title")
     artist = request.json.get("artist")
+    query = get_URL_query(title, artist)
+
+    print(query, flush=True)
+
     try:
-        ret = spot.sp.search(q="artist:" + artist + " track:" + title, type="track", limit=15)
+        ret = spot.sp.search(q=query, type='track', limit=20)
     except:
         return jsonify({"error": "Error fetching the request"}), 500
+    
     result = comp_search(ret)
+
     if(result):
-        return jsonify(result), 200
+        return result, 200
     else: return jsonify({"error": "No songs found"}), 404
+
+
+def get_URL_query(title, artist):
+    query = ''
+    if(artist is ''):
+        query = f'track:"{title}"'
+    elif(title is ''):
+        query = f'artist:"{artist}"'
+    else:
+        query = f'track:"{title}" artist:"{artist}"'
+
+    return query
 
 @app.route('/spotify_song_link/<song_id>')
 def get_link(song_id):
@@ -30,38 +49,44 @@ def get_link(song_id):
 ###########################
 
 def comp_search(ret):
-    artist_name = []
-    track_name = []
-    preview = []
-    link = []
-    img = []
-    pop = []
+    artist_tracks = {}
 
     for i, t in enumerate(ret['tracks']['items']):
-        artist_name.append(t['artists'][0]['name'])
-        track_name.append(t['name'])
-        preview.append(t['preview_url'])
-        link.append(t['external_urls']['spotify'])
-        pop.append(t['popularity'])
+        artist_name = t['artists'][0]['name']
+        track_data = {
+            'track': t['name'],
+            'preview': t['preview_url'],
+            'url': t['external_urls']['spotify'],
+        }
 
         artist = spot.sp.artist(t['artists'][0]['uri'])
         if artist['images']:
-            img.append(artist['images'][0]['url'])
+            track_data['img'] = artist['images'][0]['url']
         else:
-            img.append(None)
+            track_data['img'] = None
 
-            
-    result_dict = {
-        k: {
-            'track': v,
-            'preview': track_preview,
-            'url': track_url,
-            'img': image,
-            'pop': popular
-        } for k, v, track_preview, track_url, image, popular in zip(artist_name, track_name, preview, link, img, pop)
-    }
-    
-    return result_dict
+        # Aggiungi il track_data al dizionario di liste
+        if artist_name in artist_tracks:
+            artist_tracks[artist_name].append(track_data)
+        else:
+            artist_tracks[artist_name] = [track_data]
+
+    return dict_to_ordered_json_array(artist_tracks)
+
+
+# to mantain order during json transfer
+def dict_to_ordered_json_array(sorted_dict):
+    ordered_list = [
+        {
+            "artist": artist,
+            "tracks": tracks  # Each entry remains a list of track dictionaries
+        }
+        for artist, tracks in sorted_dict.items()
+    ]
+
+    # Convert the ordered list to JSON
+    ordered_json = json.dumps(ordered_list, ensure_ascii=False, indent=4)
+    return ordered_json
 
 
 if __name__ == '__main__':

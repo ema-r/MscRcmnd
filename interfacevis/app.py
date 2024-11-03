@@ -143,11 +143,13 @@ def get_rec():
 
             results = retr_link(song_title, artist)
 
+            results = {
+                item["artist"]: item["tracks"] for item in results
+            }
+
             # Controlla se results è un dizionario non vuoto
             if isinstance(results, dict) and results:
-                # sorting by match  
-                results = sort_artists_by_track_similarity(song_title, results)
-                return render_template('get_rec.html', results=results, found=True)
+                return render_template('get_rec.html', results=results, found=False)
             else:
                 flash("Song not found!", "danger")
                 return render_template('get_rec.html', results=None)
@@ -163,12 +165,11 @@ def get_rec():
 
 @app.route('/review', methods=['POST'])
 def review():
-    print("REVIEW", flush=True)
     if request.method == 'POST':
         if 'username' in session:
             # Saving review to businesslogic
             data = {'rating': request.form.get('feedback')}
-            ret = requests.post(f"{bl_url}update_review/{str(session['user_id'])}/{request.form.get('id')}", json=data)
+            ret = requests.post(f"{bl_url}update_review/{str(request.form.get('userid'))}/{str(request.form.get('id'))}", json=data)
             
             if(ret.status_code == 200):
                 tokens = requests.get(f'{bl_url}tokens/{str(session['user_id'])}')
@@ -215,7 +216,7 @@ def recommendations():
 
                         return render_template('get_rec.html', results = final_res, found = True)
                     elif ret.status_code == 404:
-                        flash("song wasn't found. Try looking for something more popular?", "danger")
+                        flash("Song not found!", "danger")
                         return render_template('get_rec.html', results = None, found = False)
 
                     else:
@@ -291,53 +292,6 @@ def retr_link(song, artist):
         return ret.json() 
     else:
         print(f"Error fetching from Spotify API: {ret.status_code}, {ret.text}") 
-
-    
-
-# compute similarity for songs' titles (improving spotify's algorithm)
-def levenshtein_distance(s1, s2):
-    if len(s1) < len(s2):
-        return levenshtein_distance(s2, s1)
-
-    if len(s2) == 0:
-        return len(s1)
-
-    previous_row = range(len(s2) + 1)
-    for i, c1 in enumerate(s1):
-        current_row = [i + 1]
-        for j, c2 in enumerate(s2):
-            insertions = previous_row[j + 1] + 1
-            deletions = current_row[j] + 1
-            substitutions = previous_row[j] + (c1 != c2)
-            current_row.append(min(insertions, deletions, substitutions))
-        previous_row = current_row
-
-    return previous_row[-1]
-
-def similarity_score(target_word, comparison_word):
-    distance = levenshtein_distance(target_word, comparison_word)
-    max_length = max(len(target_word), len(comparison_word))
-    
-    # Normalize the score: 1.0 means identical, 0.0 means completely different
-    score = 1 - distance / max_length
-    return score
-
-def sort_artists_by_track_similarity(target_word, artist_data):
-    # Calculate similarity scores and prepare for sorting
-    scores = {}
-    for artist, info in artist_data.items():
-        track = info['track']
-        score = similarity_score(target_word, track)
-        popularity = info['pop']
-        scores[artist] = (score, popularity)  # Store the score and popularity
-
-    # Sort artists based on (similarity score, popularity)
-    sorted_artists = sorted(scores.items(), key=lambda item: (item[1][0], item[1][1]), reverse=True)
-
-    # Reconstruct the artist_data dictionary in sorted order
-    sorted_artist_data = {artist: artist_data[artist] for artist, _ in sorted_artists}
-
-    return sorted_artist_data
 
 
 if __name__ == "__main__":
