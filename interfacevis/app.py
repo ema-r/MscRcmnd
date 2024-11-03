@@ -287,14 +287,14 @@ def get_pic(email, size=200, default='identicon', rating='g'):
 
 def retr_link(song, artist):
     data = {'title': song, 'artist': artist}
-    data = json.dumps(data)
     headers = {'Content-Type': 'application/json'}
-    ret=requests.post(sp_url+"spotify_search", data=data, headers=headers)
-    if(ret.status_code==200):
-        return ret.json()
+    ret = requests.post(sp_url + "spotify_search", json=data, headers=headers)  
+
+    if ret.status_code == 200: 
+        return ret.json() 
     else:
-        error_handler(ret.status_code)
-        return jsonify({'error': 'error'})
+        print(f"Error fetching from Spotify API: {ret.status_code}, {ret.text}") 
+
     
 
 # compute similarity for songs' titles (improving spotify's algorithm)
