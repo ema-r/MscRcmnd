@@ -1,55 +1,31 @@
 
-# MscRcmnd
+# MscRcmnd - Music Recommender
 
-This section explains the recommended steps for managing Docker Compose when using the Docker service.
+Music Recommender (or MscRcmnd) is a music recommender service instance that uses containerized microservices to offer the service itself and a bundled web interface, developed for the 23/24 edition of the Laboratory of Advanced Programming course held in Sapienza University of Rome.
 
-## 1. Start the Docker Service
+## 1. Prerequisites
 
-Before using Docker Compose, you need to ensure that the Docker service is running. To start the Docker service, execute the following command:
+The system only requires docker and docker-compose installed to run. Make sure that the docker service is active before attempting to run/build.
 
+Clone the repository:
 ```bash
-sudo systemctl start docker.service
+git clone https://github.com/ema-r/MscRcmnd.git
 ```
 
-This command will start the Docker engine, enabling it to run containers as required by Docker Compose.
+The application requires some Spotify API credentials to be filled in in interfacespot/spotify_secrets.py. The datasets are not provided, and need to be acquired elsewhere
+and inserted in the mlengine folder.
+
+## 2. Building and running
+
+To build and run the application:
+
+```bash
+docker compose up --build
+```
+Admin priviledges may be required
 
 ---
 
-# Docker Compose Configuration
+## 3. Documentation
 
-This guide provides instructions on how to configure and start Docker Compose correctly using the necessary commands.
-
-## Prerequisites
-
-- Docker and Docker Compose must be installed on your system.
-- Ensure that the Docker service is running (see the **MscRcmnd** section).
-
-## Configuration Steps
-
-### 1. Start the Docker Service
-
-To start Docker on the system, run the following command:
-
-```bash
-sudo systemctl start docker.service
-```
-
-### 2. Stop and Rebuild Containers with Docker Compose
-
-Once Docker is running, you can stop any existing containers and rebuild them using Docker Compose. Run the following command:
-
-```bash
-sudo docker-compose down && sudo docker compose up --build
-```
-
-- **docker-compose down**: Stops and removes containers, networks, and volumes associated with the services defined in the `docker-compose.yml` file.
-- **docker compose up --build**: Rebuilds and starts the containers based on the `docker-compose.yml` configuration.
-
-Ensure that the `docker-compose.yml` file is correctly configured in your current directory before running the command.
-
-## Verification
-
-To check that your containers are running correctly, use:
-
-```bash
-sudo docker ps
+Documentation is provided under the doc folder.
