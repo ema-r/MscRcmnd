@@ -24,8 +24,6 @@ docker compose up --build
 ```
 Admin priviledges may be required
 
----
-
 ## 3. Documentation
 
 Documentation is provided under the doc folder.
