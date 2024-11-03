@@ -138,26 +138,23 @@ def profile():
 def get_rec():
     if "username" in session:
         if request.method == 'POST':
-            # Process the form data
             song_title = request.form.get('song_title')
             artist = request.form.get('artist')
 
             results = retr_link(song_title, artist)
 
-            # sorting by match  
-            results = sort_artists_by_track_similarity(song_title, results)
-
-            # if the song exists
-            if results:
-                return render_template('get_rec.html', results = results, found = False)
-
-            else: 
+            # Controlla se results è un dizionario non vuoto
+            if isinstance(results, dict) and results:
+                # sorting by match  
+                results = sort_artists_by_track_similarity(song_title, results)
+                return render_template('get_rec.html', results=results, found=True)
+            else:
                 flash("Song not found!", "danger")
-                return render_template('get_rec.html', results = None)
-        
+                return render_template('get_rec.html', results=None)
+
         elif request.method == "GET":
             return render_template('get_rec.html', results=None)
-    
+
     else: 
         flash("You must be logged in", "danger")
         return render_template("index.html", active_page="index")
