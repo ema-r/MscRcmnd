@@ -143,10 +143,6 @@ def get_rec():
 
             results = retr_link(song_title, artist)
 
-            results = {
-                item["artist"]: item["tracks"] for item in results
-            }
-
             # Controlla se results è un dizionario non vuoto
             if isinstance(results, dict) and results:
                 return render_template('get_rec.html', results=results, found=False)
@@ -207,12 +203,12 @@ def recommendations():
                         song_artist = ret.json().get('artistname')
                         print("Song artist found: ", song_artist)
                         flash('Recommendation found!', 'success')
-                        search_res = retr_link(song_title, song_artist)
+                        search_res = retr_link(song_title, song_artist, 1)
                         final_res = {}
                         final_res[song_artist] = search_res[song_artist]
-                        final_res[song_artist]['user_id'] = ret.json().get('userid')
-                        final_res[song_artist]['id'] = ret.json().get('id')
-                        print(final_res, flush=True)
+                        final_res[song_artist] = final_res[song_artist]
+                        final_res[song_artist][0]['user_id'] = ret.json().get('userid')
+                        final_res[song_artist][0]['id'] = ret.json().get('id')
 
                         return render_template('get_rec.html', results = final_res, found = True)
                     elif ret.status_code == 404:
@@ -283,13 +279,17 @@ def get_pic(email, size=200, default='identicon', rating='g'):
     return f"https://www.gravatar.com/avatar/{hash}?s={size}&d={default}&r={rating}"
 
 
-def retr_link(song, artist):
-    data = {'title': song, 'artist': artist}
+def retr_link(song, artist, limit=20):
+    data = {'title': song, 'artist': artist, 'limit': limit}
     headers = {'Content-Type': 'application/json'}
     ret = requests.post(sp_url + "spotify_search", json=data, headers=headers)  
 
-    if ret.status_code == 200: 
-        return ret.json() 
+    if ret.status_code == 200:
+        result = ret.json()
+        results = {
+                item["artist"]: item["tracks"] for item in result
+            } 
+        return results
     else:
         print(f"Error fetching from Spotify API: {ret.status_code}, {ret.text}") 
 

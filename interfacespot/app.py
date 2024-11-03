@@ -13,12 +13,13 @@ def hello():
 def search():
     title = request.json.get("title")
     artist = request.json.get("artist")
+    limit = request.json.get('limit')
     query = get_URL_query(title, artist)
 
     print(query, flush=True)
 
     try:
-        ret = spot.sp.search(q=query, type='track', limit=20)
+        ret = spot.sp.search(q=query, type='track', limit=limit)
     except:
         return jsonify({"error": "Error fetching the request"}), 500
     

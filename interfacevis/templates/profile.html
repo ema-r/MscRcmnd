@@ -44,7 +44,13 @@
                         <li class="list-group-item">
                             <strong>{{ user.recommendations[i].songname }}</strong> by {{ user.recommendations[i].artistname }} {% if user.recommendations[i].rating %}<span style="float: right; margin-right: 10px;">
                               <img src="{% if user.recommendations[i].rating == 1.0 %} {{ url_for('static', filename='thumb-up.png') }} {% elif user.recommendations[i].rating == -1.0 %} {{ url_for('static', filename='thumb-down.png') }} {% else %} {% endif %}" alt="{{ user.recommendations[i].rating}}" width="30" height="30">
-                            </span> {% endif %}
+                            </span> 
+                            {% else %}
+                            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA
+                                AAAACAIAAADyaC2IAAAACXBIWXMAAB7CAAAewgFu0HU+AAABFklEQVR42mJ8//8/AwD0AA3oKcWAACGJGyAgCNAEInMCGhCEAAE4FAkhJYyGQQhwMQBESFkAJsgIwZECY
+                                CFAgAwEDRBIgUAAAiZcCQQVnECRYAwAxOECgGNgGGAAwODGgAAK2gBAjGAAAAAElFTkSuQmCC" 
+                                alt="White Placeholder" class="placeholder">
+                            {% endif %}
                         </li>
                         {% else %}
                         <li class="list-group-item">No recommendations yet.</li>
@@ -62,5 +68,12 @@
         max-height: 70vh; /* Adjust the height as needed */
         overflow-y: auto; /* Makes the section scrollable */
     }
+    
+    .placeholder {
+        width: 30px; /* Set the desired width */
+        height: 30px; /* Set the desired height */
+        opacity: 0; /* Make the image invisible */
+    }
+    
 </style>
 {% endblock %}
