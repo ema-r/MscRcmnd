@@ -63,6 +63,7 @@
     }
 }
 
+
 .profile-picture {
     max-width: 150px; /* Set the maximum width of the profile picture */
     height: auto; /* Maintain aspect ratio */
@@ -111,5 +112,100 @@
 table th {
     font-weight: 600;
     background-color: #eeecfd !important;
+}
+
+
+/* FORM */
+.form-signin {
+    width: 100%;
+    max-width: 330px;
+    padding: 15px;
+    margin: auto;
+}
+
+.form-signin .checkbox {
+    font-weight: 400;
+}
+
+.form-signin .form-floating:focus-within {
+    z-index: 2;
+}
+  
+.form-signin input[type="username"] {
+    margin-bottom: -1px;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+}
+  
+.form-signin input[type="password"] {
+    margin-bottom: 10px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.form-signin input[type="email"] {
+    margin-bottom: 10px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+
+.form-area{
+    border: 2px solid rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.row.single-form{
+    box-shadow: 0 2px 20px -5px rgba(0,0,0,0.5);
+    background: #f8f9fa;
+}
+
+.left {
+    background: green;
+    padding: 190px 93px;
+}
+
+.left h2{
+    color: #fff;
+    font-weight: 700;
+    font-size: 48px;
+}
+
+.left h2 span{
+    font-weight: 100;
+}
+
+.right{
+    padding: 20px 70px;
+    position: relative;
+}
+
+.right i{
+    position: absolute;
+    font-size: 80px;
+    left: -27px;
+    top: 40%;
+    color: #fff;
+}
+
+.form-control{
+    border: 2px solid #000;
+}
+
+.right button{
+    border: none;
+    border-radius: 0;
+    background: #252525;
+    width: 180px;
+    color: #fff;
+    padding: 15px 0;
+    display: inline-block;
+    font-size: 16px;
+    margin-top: 20px;
+    cursor: pointer;
+}
+
+.right button:hover{
+    background: #252525;
 }
 
