@@ -14,8 +14,11 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 
 # Businesslogic base url
+#bl_url="http://mscrcmnd_businesslogic_1:5000/" for some docker's versions
 bl_url="http://mscrcmnd-businesslogic-1:5000/"
+
 # Spotify container base url
+#sp_url="http://mscrcmnd_interfacespot_1:5000/" for some docker's versions
 sp_url="http://mscrcmnd-interfacespot-1:5000/"
 
 @app.route('/')

@@ -14,9 +14,11 @@ from typing import List
 import secrets
 
 # mlengine container base url
+#ml_url="http://mscrcmnd_mlengine_1:5000/" for some docker's versions
 ml_url="http://mscrcmnd-mlengine-1:5000/"
 
 # Spotify container base url
+#sp_url="http://mscrcmnd_interfacespot_1:5000/" for some docker's versions
 sp_url="http://mscrcmnd-interfacespot-1:5000/"
 
 engine = sqlalchemy.create_engine("mariadb+mariadbconnector://test_user:test@db:3306/test_database")
